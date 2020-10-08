@@ -10,7 +10,7 @@ function Professor(){
     <Navbar bg="dark" variant="dark">
     <Navbar.Brand href="#home">Papo UFF</Navbar.Brand>
     <Nav className="mr-auto">
-      <Nav.Link href="#home">Perfil</Nav.Link>
+      <Nav.Link href="/professor/perfil">Perfil</Nav.Link>
       <Nav.Link href="#features">Banco de Questões</Nav.Link>
       <Nav.Link href="#pricing">Criar Prova</Nav.Link>
       <Nav.Link href="#pricing">Aplicar Prova</Nav.Link>
