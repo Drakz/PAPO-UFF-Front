@@ -36,3 +36,86 @@
     transform: rotate(360deg);
   }
 }
+
+.col-4,
+.col-sm-4,
+.col-md-4,
+.col-lg-4,
+.col-xl-4 {
+padding: 1rem;
+color: #fff;
+text-align: center;
+}
+
+.sidebarProfessor {
+  padding: 1rem;
+  background-color: #f7f7f7;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  height: 94vh;
+  z-index: 1;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.centerProfessor{
+  padding: 1rem;
+  text-align: center;
+  height: 94vh;
+  z-index: 1;
+}
+
+.questionScroll{
+  height: 70%;
+  overflow-y: auto;
+}
+
+.testScroll{
+  height: 78%;
+  overflow-y: auto;
+}
+
+.questionDropdown{
+  text-align: center;
+  width: 100%; 
+  overflow-y: auto;
+}
+
+.divPage{
+  padding-left: 1rem;
+  max-height: 95vh;
+  max-width: 95vw;
+  text-align: center;
+}
+
+.homeAluno{
+  text-align: center;
+  width: 100%; 
+  overflow-y: auto;
+}
+
+.AlunoHeader{
+  background-color: #1b4cad;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.formLogin{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: black;
+}
+
+.sidebarAluno{
+  padding: 1rem;
+  background-color: #f7f7f7;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  height: 100vh;
+  z-index: 1;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}

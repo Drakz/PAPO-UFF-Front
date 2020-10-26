@@ -1,29 +1,31 @@
-import React from 'react';
-import { BrowserRouter, Route, Switch,Redirect } from 'react-router-dom';
-import './App.css';
+import React from "react";
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+import "./App.css";
 
-import Login from './login';
-import professorPerfil from './professor/professorPerfil';
-import Aluno from './aluno';
+import Login from "./login";
+import professorPerfil from "./professor/professorPerfil";
+import Banco from "./professor/banco";
+import ProvaProfessor from "./professor/prova";
+import SalaProva from "./professor/salaprova";
+import ProvaAluno from "./aluno/prova";
+import Aluno from "./aluno/aluno";
 
-function App(){
-
-  return(
+function App() {
+  return (
     <BrowserRouter>
-        <div>
-            <Switch>
-             <Redirect exact from="/" to="/login" />
-             <Redirect exact from="/professor" to="/professor/perfil" />
-             <Route path="/login" component={Login} exact/>
-             <Route path="/professor/perfil" component={professorPerfil} exact/>
-             <Route path="/professor/bancoDeQuestoes" component={professorPerfil} exact/>
-             <Route path="/professor/criarProva" component={professorPerfil} exact/>
-             <Route path="/professor/aplicarProva" component={professorPerfil} exact/>
-             <Route path="/aluno" component={Aluno} exact/>
-           </Switch>
-        </div> 
-      </BrowserRouter>
+      <Switch>
+        <Redirect exact from="/" to="/login" />
+        <Redirect exact from="/professor" to="/professor/perfil" />
+        <Route path="/login" component={Login} exact />
+        <Route path="/professor/perfil" component={professorPerfil} exact />
+        <Route path="/professor/bancoDeQuestoes" component={Banco} exact />
+        <Route path="/professor/criarProva" component={ProvaProfessor} exact />
+        <Route path="/professor/aplicarProva" component={SalaProva} exact />
+        <Route path="/aluno" component={Aluno} exact />
+        <Route path="/aluno/prova" component={ProvaAluno} exact />
+      </Switch>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
