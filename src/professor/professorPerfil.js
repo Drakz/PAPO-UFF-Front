@@ -1,69 +1,64 @@
 import React from "react";
 import Professor from "./professor";
 import "../App.css";
-import {
-  MDBRow,
-  MDBContainer,
-  MDBCol,
-  MDBMedia,
-  MDBCard,
-  MDBCardHeader,
-  MDBCardBody,
-  MDBCardTitle,
-  MDBCardText,
-} from "mdbreact";
+import { Row, Col, Card, Image } from "react-bootstrap";
 
 function ProfessorPerfil() {
+  //função de retorno
   return (
-    <div>
+    <>
       <Professor />
-      <MDBContainer fluid>
-        <MDBRow>
-          <MDBCol className="sidebarProfessor" md="2">
-            <MDBMedia
-              object
-              src="https://mdbootstrap.com/img/Photos/Others/placeholder1.jpg"
-              alt=""
+      <div className="divPage">
+        <Row>
+          <Col className="sidebarProfessor">
+            <Image
+              src="http://www2.ic.uff.br/~bazilio/imagens/eu2.jpg"
+              rounded
             />
-            <p className="d-block p-2 m-1">Nome do Professor</p>
-            <p className="d-inline p-2 m-1">O</p>
-            <p className="d-block p-2 m-1">Períodos</p>
-          </MDBCol>
-          <MDBCol className="centerProfessor" md="10">
-            <h1>Turmas</h1>
+            <h3>Bazílio</h3>
+          </Col>
+          <Col className="centerProfessor" md="10">
             <br></br>
-            <h1>2020-1</h1>
+            <Card>
+              <Card.Header>Período 2020.1</Card.Header>
+            </Card>
             <br></br>
-            <MDBCard>
-              <MDBCardHeader color="success-color">RCM0001</MDBCardHeader>
-              <MDBCardBody>
-                <MDBCardTitle>Física 1</MDBCardTitle>
-                <MDBCardText>12 Alunos</MDBCardText>
-              </MDBCardBody>
-            </MDBCard>
+            <Card>
+              <Card.Body>
+                <blockquote className="blockquote mb-0">
+                  <p>Linguagens de Programação - RCM00008 </p>
+
+                  <footer className="blockquote-footer">16 Alunos</footer>
+                </blockquote>
+              </Card.Body>
+            </Card>
             <br></br>
-            <MDBCard>
-              <MDBCardHeader color="success-color">RCM0003</MDBCardHeader>
-              <MDBCardBody>
-                <MDBCardTitle>Física 3</MDBCardTitle>
-                <MDBCardText>22 Alunos</MDBCardText>
-              </MDBCardBody>
-            </MDBCard>
+            <Card>
+              <Card.Body>
+                <blockquote className="blockquote mb-0">
+                  <p>Prog Web - RCM00057</p>
+
+                  <footer className="blockquote-footer">8 Alunos</footer>
+                </blockquote>
+              </Card.Body>
+            </Card>
             <br></br>
-            <h1>2019-2</h1>
+            <Card>
+              <Card.Header>Período 2019.7</Card.Header>
+            </Card>
             <br></br>
-            <MDBCard>
-              <MDBCardHeader color="success-color">RCM0002</MDBCardHeader>
-              <MDBCardBody>
-                <MDBCardTitle>Física 2</MDBCardTitle>
-                <MDBCardText>5 Alunos</MDBCardText>
-              </MDBCardBody>
-            </MDBCard>
-            <br></br>
-          </MDBCol>
-        </MDBRow>
-      </MDBContainer>
-    </div>
+            <Card>
+              <Card.Body>
+                <blockquote className="blockquote mb-0">
+                  <p>Linguagens de Programação - RCM00008 </p>
+                  <footer className="blockquote-footer">12 Alunos</footer>
+                </blockquote>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    </>
   );
 }
 

@@ -1,186 +1,386 @@
 import React, { useState, useCallback } from "react";
 import Professor from "./professor";
+import Banco from "./banco";
 import "../App.css";
+import {
+  Row,
+  Col,
+  Card,
+  Accordion,
+  Button,
+  InputGroup,
+  FormControl,
+  Modal,
+} from "react-bootstrap";
+import QuestionForm from "../questionForm";
+import QuestionContext from "./QuestionContext";
 
-import { Row, Col, Form, Button, ListGroup } from "react-bootstrap";
+function ComponenteDoRafael({
+  question: {
+    title,
+    description,
+    answer,
+    type,
+    difficulty,
+    value,
+    subject,
+    topic,
+    inOutList,
+    multipleChoiceAnswer,
+  },
+  questionList,
+  setQuestionList,
+  index,
+}) {
+  const doRemoveQuestion = useCallback(() => {
+    setQuestionList((questionList) => {
+      const [...questionListAux] = questionList; // Não mute o original (estado react), faça uma cópia antes
+      questionListAux.splice(index, 1); // countToRemove pode ser 1
+      return questionListAux; // Retorna a cópia mutada (com um elemento removido)
+    });
+  }, [setQuestionList, index]);
 
-function ProvaProfessor() {
-  const [questionList, setQuestionList] = useState([]);
-  const [title, setTitle] = useState("");
-  const [enunciado, setEnunciado] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [lastIndex, setLastIndex] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [index, setIndex] = useState(1);
-  const [tipo, setTipo] = useState(1);
+  const setTitle = useCallback(
+    (title) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].title = title;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setDescription = useCallback(
+    (description) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].description = description;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setAnswer = useCallback(
+    (answer) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].answer = answer;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setType = useCallback(
+    (type) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].type = parseInt(type);
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setDifficulty = useCallback(
+    (difficulty) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].difficulty = difficulty;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setValue = useCallback(
+    (value) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].value = value;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setSubject = useCallback(
+    (subject) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].subject = subject;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setTopic = useCallback(
+    (topic) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].topic = topic;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setInOutList = useCallback(
+    (inOutList) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].inOutList = inOutList;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const setMultipleChoiceAnswer = useCallback(
+    (multipleChoiceAnswer) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].multipleChoiceAnswer = multipleChoiceAnswer;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
+  const [currentIndex, setCurrentIndex] = useState(0);
+  return (
+    <QuestionContext.Provider
+      key={index}
+      value={{
+        title,
+        setTitle,
+        description,
+        setDescription,
+        answer,
+        setAnswer,
+        type,
+        setType,
+        difficulty,
+        setDifficulty,
+        value,
+        setValue,
+        subject,
+        setSubject,
+        topic,
+        setTopic,
+        doRemoveQuestion,
+        inOutList,
+        setInOutList,
+        multipleChoiceAnswer,
+        setMultipleChoiceAnswer,
+      }}
+    >
+      <div key={index} style={{ marginBottom: 5 }}>
+        <Card
+          key={index}
+          border={currentIndex === index ? "primary" : "secondary"}
+        >
+          <Accordion.Toggle
+            key={index}
+            as={Card.Header}
+            eventKey={index + 1}
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setCurrentIndex(index);
+            }}
+          >
+            {title === ""
+              ? "Nova Questão - " + value + " pontos"
+              : title + " - " + value + " pontos"}
+          </Accordion.Toggle>
+          <Accordion.Collapse eventKey={index + 1}>
+            <Card.Body key={index}>
+              <QuestionForm editable={true} deletable={true}></QuestionForm>
+            </Card.Body>
+          </Accordion.Collapse>
+        </Card>
+      </div>
+    </QuestionContext.Provider>
+  );
+}
 
-  const handleClick = useCallback(() => {
-    setQuestionList([
-      ...questionList,
-      {
-        id: index,
-        titulo: "",
-        enunciado: "",
-        resposta: "",
-        dificuldade: "",
-        tipo: "",
-      },
-    ]);
-    setIndex(index + 1);
-  }, [questionList, index]);
-
+function QuestionList({
+  questionList,
+  setQuestionList,
+  setTestValue,
+  testValue,
+}) {
   return (
     <>
-      <Professor />
-      <div className="divPage">
-        <Row>
-          <Col className="sidebarProfessor" size="2">
-            <ListGroup className="testScroll" variant="flush">
-              <ListGroup.Item variant="dark">Questões</ListGroup.Item>
-              {questionList.length > 0 ? (
-                questionList.map((_questions) => (
-                  <ListGroup.Item
-                    active={currentIndex === _questions.id ? true : false}
-                    action="true"
-                    onClick={() => {
-                      //salvar a questão anterior
-                      questionList[lastIndex].titulo = title;
-                      questionList[lastIndex].enunciado = enunciado;
-                      questionList[lastIndex].resposta = answer;
-                      //mostrar na tela a questão atual
-                      setTitle(questionList[_questions.id - 1].titulo);
-                      setEnunciado(questionList[_questions.id - 1].enunciado);
-                      setAnswer(questionList[_questions.id - 1].resposta);
-                      setLastIndex(_questions.id - 1);
-                      setCurrentIndex(_questions.id);
-                    }}
-                  >{`Questão ${_questions.id}`}</ListGroup.Item>
-                ))
-              ) : (
-                <ListGroup.Item>Não tem questão</ListGroup.Item>
-              )}
-            </ListGroup>
-            <br></br>
-            <Row>
-              <Col>
-                <Button
-                  block
-                  variant="danger"
-                  onClick={() => {
-                    const [...arrayCopy] = questionList; // Não mute o original (estado react), faça uma cópia antes
-                    arrayCopy.splice(questionList.length - 1, 1); // countToRemove pode ser 1
-                    setQuestionList(arrayCopy);
-                  }}
-                >
-                  -
-                </Button>
-              </Col>
-              <Col>
-                <Button block variant="success" onClick={handleClick}>
-                  +
-                </Button>
-              </Col>
-            </Row>
-            <br></br>
-            <Button block="true" variant="info">
-              Buscar no banco de questões
-            </Button>
-            <br></br>
-            <Button block="true" variant="info">
-              Finalizar Prova
-            </Button>
-          </Col>
-          <Col className="centerProfessor" md="10">
-            <Form>
-              <Row>
-                <Col>
-                  <Form.Group>
-                    <Form.Label>Dificuldade</Form.Label>
-                    <Form.Control as="select">
-                      <option>Fácil</option>
-                      <option>Médio</option>
-                      <option>Difícil</option>
-                    </Form.Control>
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group>
-                    <Form.Label>Tipo</Form.Label>
-                    <Form.Control as="select">
-                      <option
-                        onClick={() => {
-                          setTipo(1);
-                        }}
-                      >
-                        Discursiva
-                      </option>
-                      <option
-                        onClick={() => {
-                          setTipo(2);
-                        }}
-                      >
-                        Programação
-                      </option>
-                      <option>Múltipla Escolha</option>
-                    </Form.Control>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Form.Group>
-                <Form.Label>Título</Form.Label>
-                <Form.Control
-                  onChange={(t) => {
-                    setTitle(t.target.value);
-                  }}
-                  value={title}
-                  as="textarea"
-                  rows={2}
-                  type="text"
-                  placeholder="Título da questão"
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Enunciado</Form.Label>
-                <Form.Control
-                  onChange={(e) => {
-                    setEnunciado(e.target.value);
-                  }}
-                  value={enunciado}
-                  as="textarea"
-                  rows={3}
-                  type="text"
-                  placeholder="Enunciado da questão"
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Resposta</Form.Label>
-                <Form.Control
-                  onChange={(a) => {
-                    setAnswer(a.target.value);
-                  }}
-                  value={answer}
-                  as="textarea"
-                  rows={3}
-                  type="text"
-                  placeholder="Resposta da questão"
-                />
-              </Form.Group>
-              {tipo === 2 && ( //tipo programação
-                <Form.Group>
-                  <Form.Control
-                    as="textarea"
-                    rows={1}
-                    type="text"
-                    placeholder="Número de Compilações"
-                  />
-                </Form.Group>
-              )}
-            </Form>
-          </Col>
-        </Row>
-      </div>
+      {questionList.map((question, index) => (
+        <ComponenteDoRafael
+          question={question}
+          questionList={questionList}
+          setQuestionList={setQuestionList}
+          index={index}
+        />
+      ))}
     </>
   );
 }
 
-export default ProvaProfessor;
+function ProfessorPerfil() {
+  //estados modal banco de questões
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  //estados usados no componente
+  const [testName, setTestName] = useState("");
+  const [questionList, setQuestionList] = useState([]);
+  const [testValue, setTestValue] = useState([]);
+  //função para a criação de uma prova
+  const newTest = useCallback(async () => {
+    const res = await fetch(`/api/newTest`, {
+      method: "POST",
+      body: JSON.stringify({
+        testName,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const exam = await res.json();
+    questionList.map(async (question, index) => {
+      const res = await fetch(`http://localhost:4000/api/addQuestion`, {
+        method: "POST",
+        body: JSON.stringify({
+          description: question.description,
+          title: question.title,
+          type: question.type,
+          difficulty: question.difficulty,
+          answer: question.answer,
+          inOutList: question.inOutList,
+          multipleChoiceAnswer: question.multipleChoiceAnswer,
+          topic: question.topic,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const examQuestion = await res.json();
+      const rel = await fetch(`http://localhost:4000/api/newTestRel`, {
+        method: "POST",
+        body: JSON.stringify({
+          testId: exam[0].test_id,
+          questionId: examQuestion.id,
+          value: question.value,
+          compilation: 0,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      //const relation = await rel.json();
+    });
+    setQuestionList([]);
+    setTestName("");
+    console.log("prova criada com sucesso");
+  }, [questionList, testName]);
+
+  //função para popular a lista de questões
+  const newQuestion = useCallback(() => {
+    setQuestionList([
+      ...questionList,
+      {
+        title: "",
+        description: "",
+        answer: "",
+        type: 1,
+        difficulty: 1,
+        value: 0,
+        subject: 0,
+        topic: 4,
+        multipleChoiceAnswer: [],
+        inOutList: [],
+      },
+    ]);
+  }, [questionList]);
+  //função para importar uma questão do banco de questões
+  const importQuestion = useCallback(
+    (
+      title,
+      description,
+      type,
+      difficulty,
+      subject,
+      topic,
+      inOutList = [],
+      multipleChoiceAnswer = [],
+      answer = ""
+    ) => {
+      setQuestionList([
+        ...questionList,
+        {
+          title,
+          description,
+          type,
+          difficulty,
+          value: 0,
+          subject,
+          topic,
+          inOutList,
+          multipleChoiceAnswer,
+          answer,
+        },
+      ]);
+      handleClose();
+    },
+    [questionList]
+  );
+  //função de retorno
+  return (
+    <div className="questionBackground">
+      <Professor />
+      <Row className="justify-content-md-center">
+        <Col md={{ span: 8, offset: 2 }}>
+          <br></br>
+          <Card>
+            <Card.Body>
+              <label>Nome da Prova</label>
+              <InputGroup className="mb-3">
+                <FormControl
+                  value={testName}
+                  onChange={(e) => setTestName(e.target.value)}
+                />
+              </InputGroup>
+              <p className="textTestValue">Total de pontos: {testValue}</p>
+            </Card.Body>
+          </Card>
+          <br></br>
+          <Accordion defaultActiveKey="1">
+            <QuestionList
+              questionList={questionList}
+              setQuestionList={setQuestionList}
+              setTestValue={setTestValue}
+              testValue={testValue}
+            />
+          </Accordion>
+        </Col>
+        <Col>
+          <br></br>
+          <Row>
+            <Button onClick={() => newQuestion()}>Nova Questão</Button>
+          </Row>
+          <br></br>
+          <Row>
+            <Button onClick={handleShow}>Banco de Questões</Button>
+          </Row>
+          <br></br>
+          <Row>
+            <Button onClick={() => newTest()}>Finalizar Prova</Button>
+          </Row>
+        </Col>
+      </Row>
+      <Modal
+        show={show}
+        onHide={() => setShow(false)}
+        dialogClassName="modalDatabase"
+      >
+        <Modal.Body>
+          <Banco
+            size={"md"}
+            readOnly={true}
+            modal={true}
+            editable={false}
+            exportable={true}
+            exportFunction={importQuestion}
+          ></Banco>
+        </Modal.Body>
+      </Modal>
+    </div>
+  );
+}
+
+export default ProfessorPerfil;

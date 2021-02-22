@@ -28,6 +28,10 @@
   color: #61dafb;
 }
 
+.graybackground {
+  background-color: #cccccc;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -36,6 +40,8 @@
     transform: rotate(360deg);
   }
 }
+
+.fixed-textarea { resize:none; }
 
 .col-4,
 .col-sm-4,
@@ -57,6 +63,16 @@ text-align: center;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
 }
 
+.sidebarProfessorModal {
+  padding: 1rem;
+  background-color: #f7f7f7;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  height: 90vh;
+  z-index: 1;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
 .centerProfessor{
   padding: 1rem;
   text-align: center;
@@ -64,13 +80,17 @@ text-align: center;
   z-index: 1;
 }
 
+.codeEditor{
+  text-align: left;
+}
+
 .questionScroll{
-  height: 70%;
+  height: 80%;
   overflow-y: auto;
 }
 
 .testScroll{
-  height: 78%;
+  height: 85%;
   overflow-y: auto;
 }
 
@@ -82,8 +102,15 @@ text-align: center;
 
 .divPage{
   padding-left: 1rem;
-  max-height: 95vh;
-  max-width: 95vw;
+  max-height: 94vh;
+  max-width: 94vw;
+  text-align: center;
+}
+
+.divPageModal{
+  padding-left: 1rem;
+  max-height: 90vh;
+  max-width: 94vw;
   text-align: center;
 }
 
@@ -118,4 +145,45 @@ text-align: center;
   height: 100vh;
   z-index: 1;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.dividerForm{
+  border-top: 1px solid;
+  border-top-color: #dadce0;
+}
+
+.buttonForm{
+  margin-top: 16px;
+}
+
+.textAnswer{
+  font-size: 14px;
+  color: green;
+}
+
+.textTestValue{
+  margin-left: 89%;
+  font-size: 14px;
+}
+
+.greenBorder{
+  border: 1px solid;
+  border-color: green;
+}
+
+.modalDatabase{
+  min-height: 90vh;
+  max-height: 90vh;
+  height: 90vh;
+  min-width: 90%;
+  max-width: 90%;
+  width: 90%;
+}
+
+.questionBackground{
+  background-color: #e7e7e7;
+  height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
