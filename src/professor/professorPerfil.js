@@ -1,7 +1,7 @@
 import React from "react";
 import Professor from "./professor";
 import "../App.css";
-import { Row, Col, Card, Image } from "react-bootstrap";
+import { Row, Col, Card, Image, Button } from "react-bootstrap";
 
 function ProfessorPerfil() {
   //função de retorno
@@ -20,15 +20,15 @@ function ProfessorPerfil() {
           <Col className="centerProfessor" md="10">
             <br></br>
             <Card>
-              <Card.Header>Período 2020.1</Card.Header>
+              <Card.Header>Alarmes</Card.Header>
             </Card>
             <br></br>
             <Card>
               <Card.Body>
                 <blockquote className="blockquote mb-0">
-                  <p>Linguagens de Programação - RCM00008 </p>
+                  <p>Segunda-Feira </p>
 
-                  <footer className="blockquote-footer">16 Alunos</footer>
+                  <footer className="blockquote-footer">16:10</footer>
                 </blockquote>
               </Card.Body>
             </Card>
@@ -36,25 +36,14 @@ function ProfessorPerfil() {
             <Card>
               <Card.Body>
                 <blockquote className="blockquote mb-0">
-                  <p>Prog Web - RCM00057</p>
+                  <p>Quarta-feira</p>
 
-                  <footer className="blockquote-footer">8 Alunos</footer>
+                  <footer className="blockquote-footer">9:30</footer>
                 </blockquote>
               </Card.Body>
             </Card>
             <br></br>
-            <Card>
-              <Card.Header>Período 2019.7</Card.Header>
-            </Card>
-            <br></br>
-            <Card>
-              <Card.Body>
-                <blockquote className="blockquote mb-0">
-                  <p>Linguagens de Programação - RCM00008 </p>
-                  <footer className="blockquote-footer">12 Alunos</footer>
-                </blockquote>
-              </Card.Body>
-            </Card>
+            <Button>Novo Alarme</Button>
           </Col>
         </Row>
       </div>

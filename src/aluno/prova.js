@@ -10,13 +10,6 @@ import {
   FormControl,
 } from "react-bootstrap";
 
-import CodeMirror from "@uiw/react-codemirror";
-import "codemirror/addon/display/autorefresh";
-import "codemirror/addon/comment/comment";
-import "codemirror/addon/edit/matchbrackets";
-import "codemirror/keymap/sublime";
-import "codemirror/theme/monokai.css";
-
 function ProvaAluno() {
   const [enunciado, setEnunciado] = useState("");
   const [resp, setResp] = useState("");
@@ -82,7 +75,7 @@ function ProvaAluno() {
   return (
     <>
       <div className="divPage">
-        <Row>printf("daisdash")
+        <Row>
           <Col className="sidebarAluno" size="2">
             <ListGroup className="testScroll" variant="flush">
               {questionList.length > 0 ? (
@@ -166,17 +159,13 @@ function ProvaAluno() {
                 <Form.Group>
                   <Form.Label>Código</Form.Label>
                   <div className="codeEditor">
-                    <CodeMirror
-                      onChange={(r) => setResp(r.getValue())}
+                    <Form.Control
+                      onChange={(r) => setResp(r.target.value)}
                       height={300}
                       width={1487}
+                      type="text"
+                      as="textarea"
                       value={resp}
-                      options={{
-                        theme: "monokai",
-                        tabSize: 2,
-                        keyMap: "sublime",
-                        mode: "c",
-                      }}
                     />
                   </div>
                   <Row>
