@@ -22,22 +22,24 @@ function ProvaAluno() {
     {
       description: "",
       answer: "",
-      type: 2,
+      type: 1,
       value: 0,
     },
   ]);
 
   useEffect(() => {
-    console.log(questionList[0]);
     const myFunction = async () => {
       const res = await fetch(`http://localhost:4000/api/student_questions`, {
         method: "POST",
         body: JSON.stringify({
-          testId: 39,
+          testId: 1,
         }),
         headers: { "Content-Type": "application/json" },
       });
       const questions = await res.json();
+      questions.forEach((element) => {
+        element.answer = "";
+      });
       console.log(questions);
       setQuestionList(questions);
     };
@@ -86,6 +88,7 @@ function ProvaAluno() {
                     action
                     onClick={() => {
                       setEnunciado(questionList[index].description);
+                      setResp(questionList[index].answer);
                       setCurrentIndex(index);
                     }}
                   >
@@ -131,7 +134,9 @@ function ProvaAluno() {
                 <Form.Label>Enunciado</Form.Label>
                 <Form.Control
                   className="fixed-textarea"
-                  onChange={(e) => setEnunciado(e.target.value)}
+                  onChange={(e) => {
+                    setEnunciado(e.target.value);
+                  }}
                   value={enunciado}
                   as="textarea"
                   rows={6}
@@ -143,10 +148,14 @@ function ProvaAluno() {
               {questionList[currentIndex].type === 1 && (
                 <Form.Group>
                   <Form.Label>Resposta</Form.Label>
-
                   <Form.Control
                     className="fixed-textarea"
-                    onChange={(r) => setResp(r.target.value)}
+                    onChange={(r) => {
+                      setResp(r.target.value);
+                      const newQuestionList = [...questionList];
+                      newQuestionList[currentIndex].answer = r.target.value;
+                      setQuestionList(newQuestionList);
+                    }}
                     value={resp}
                     as="textarea"
                     rows={10}
