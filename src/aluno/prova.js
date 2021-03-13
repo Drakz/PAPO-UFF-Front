@@ -32,18 +32,38 @@ function ProvaAluno() {
       const res = await fetch(`http://localhost:4000/api/student_questions`, {
         method: "POST",
         body: JSON.stringify({
-          testId: 1,
+          testId: 3,
         }),
         headers: { "Content-Type": "application/json" },
       });
       const questions = await res.json();
-      questions.forEach((element) => {
-        element.answer = "";
+      questions.map(async (question) => {
+        question.answer = "";
+        question.alt = [];
       });
       console.log(questions);
       setQuestionList(questions);
     };
+    const myAlternatives = async (id) => {
+      console.log(questionList[currentIndex].question_id);
+      const alt = await fetch(
+        `http://localhost:4000/api/student_alternatives`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            questionId: id,
+          }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      return await alt.json();
+    };
     myFunction();
+    questionList.map(async (question) => {
+      if (question.type === 3) {
+        question.alt = await myAlternatives(question.id);
+      }
+    });
   }, []);
 
   const compile = useCallback(async () => {
@@ -207,35 +227,27 @@ function ProvaAluno() {
                 </Form.Group>
               )}
               {questionList[currentIndex].type === 3 && (
-                <Form.Group>
-                  <InputGroup>
-                    <InputGroup.Prepend>
-                      <InputGroup.Checkbox />
-                    </InputGroup.Prepend>
-                    <FormControl />
-                  </InputGroup>
-                  <br></br>
-                  <InputGroup>
-                    <InputGroup.Prepend>
-                      <InputGroup.Checkbox />
-                    </InputGroup.Prepend>
-                    <FormControl />
-                  </InputGroup>
-                  <br></br>
-                  <InputGroup>
-                    <InputGroup.Prepend>
-                      <InputGroup.Checkbox />
-                    </InputGroup.Prepend>
-                    <FormControl />
-                  </InputGroup>
-                  <br></br>
-                  <InputGroup>
-                    <InputGroup.Prepend>
-                      <InputGroup.Checkbox />
-                    </InputGroup.Prepend>
-                    <FormControl />
-                  </InputGroup>
-                </Form.Group>
+                <>
+                  {questionList[currentIndex].alt.map((_alt, index) => {
+                    return (
+                      <>
+                        <Form.Group key={index}>
+                          <InputGroup>
+                            <InputGroup.Prepend>
+                              <InputGroup.Checkbox />
+                            </InputGroup.Prepend>
+                            <FormControl
+                              key={index}
+                              defaultValue={_alt.alternative}
+                              readOnly
+                            />
+                          </InputGroup>
+                        </Form.Group>
+                        <br></br>
+                      </>
+                    );
+                  })}
+                </>
               )}
             </Form>
           </Col>
