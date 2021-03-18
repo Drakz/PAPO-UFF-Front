@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Figure,
   Card,
@@ -9,8 +9,12 @@ import {
   Container,
 } from "react-bootstrap";
 import "../App.css";
+import { useHistory } from "react-router-dom";
 
 function Aluno() {
+  const [testId, setTestId] = useState(0);
+  const history = useHistory();
+  //console.log(history.location.state.id);
   return (
     <div className="AlunoHeader">
       <Container>
@@ -18,7 +22,6 @@ function Aluno() {
           <Col className="homeAluno">
             <Card>
               <Card.Header>
-                {" "}
                 <Figure>
                   <Figure.Image
                     width={171}
@@ -34,9 +37,33 @@ function Aluno() {
                   <Form>
                     <Form.Group controlId="formBasicEmail">
                       <Form.Label>Digite o código da prova</Form.Label>
-                      <Form.Control type="text" placeholder="Ex. 22222" />
+                      <Form.Control
+                        onChange={(e) => {
+                          setTestId(e.target.value);
+                        }}
+                        type="text"
+                        placeholder="Ex. 12345"
+                      />
                     </Form.Group>
-                    <Button variant="primary">Entrar</Button>
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        console.log(testId);
+                        if (parseInt(testId) > 0) {
+                          history.push({
+                            pathname: "/aluno/prova",
+                            state: {
+                              student_id: history.location.state.id,
+                              test_id: testId,
+                            },
+                          });
+                        } else {
+                          console.log("Deu ruim");
+                        }
+                      }}
+                    >
+                      Entrar
+                    </Button>
                   </Form>
                 </Card.Text>
               </Card.Body>

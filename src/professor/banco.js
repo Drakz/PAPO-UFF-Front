@@ -223,6 +223,7 @@ function Banco({
     inOutListModal,
     multipleChoiceAnswerModal,
     answerModal,
+    currentTopic,
     getQuestions,
   ]);
 
@@ -322,6 +323,7 @@ function Banco({
                     }
                     action
                     onClick={() => {
+                      setCurrentIndex(_question.question_id);
                       getQuestion(_question.question_id);
                       clearAnswer();
                       getAnswer(_question.question_id, _question.type);

@@ -11,7 +11,6 @@ function Professor() {
         <Nav.Link href="/professor/perfil">Início</Nav.Link>
         <Nav.Link href="/professor/bancoDeQuestoes">Banco de Questões</Nav.Link>
         <Nav.Link href="/professor/criarProva">Criar Prova</Nav.Link>
-        <Nav.Link href="/professor/aplicarProva">Aplicar Prova</Nav.Link>
       </Nav>
     </Navbar>
   );

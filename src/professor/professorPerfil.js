@@ -1,10 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Professor from "./professor";
 import "../App.css";
-import { Row, Col, Card, Image, Button } from "react-bootstrap";
+import { Row, Col, Image, Card, Button } from "react-bootstrap";
+import { useHistory } from "react-router-dom";
 
 function ProfessorPerfil() {
+  const [testList, setTestList] = useState([]);
+  const history = useHistory();
+  useEffect(() => {
+    const myFunction = async () => {
+      const res = await fetch(`http://localhost:4000/api/tests`, {
+        method: "POST",
+        body: JSON.stringify({
+          prof_id: history.location.state.prof_id,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const tests = await res.json();
+      setTestList(tests);
+    };
+    myFunction();
+  }, [history.location.state.prof_id]);
   //função de retorno
+
   return (
     <>
       <Professor />
@@ -18,32 +36,22 @@ function ProfessorPerfil() {
             <h3>Bazílio</h3>
           </Col>
           <Col className="centerProfessor" md="10">
-            <br></br>
-            <Card>
-              <Card.Header>Alarmes</Card.Header>
-            </Card>
-            <br></br>
-            <Card>
-              <Card.Body>
-                <blockquote className="blockquote mb-0">
-                  <p>Segunda-Feira </p>
-
-                  <footer className="blockquote-footer">16:10</footer>
-                </blockquote>
-              </Card.Body>
-            </Card>
-            <br></br>
-            <Card>
-              <Card.Body>
-                <blockquote className="blockquote mb-0">
-                  <p>Quarta-feira</p>
-
-                  <footer className="blockquote-footer">9:30</footer>
-                </blockquote>
-              </Card.Body>
-            </Card>
-            <br></br>
-            <Button>Novo Alarme</Button>
+            {testList.map((test) => {
+              console.log("oie");
+              return (
+                <>
+                  <Card>
+                    <Card.Header as="h5">{test.name}</Card.Header>
+                    <Card.Body>
+                      <Card.Title>Teste</Card.Title>
+                      <Card.Text>Outro teste</Card.Text>
+                      <Button variant="primary">Correção</Button>
+                    </Card.Body>
+                  </Card>
+                  <br></br>
+                </>
+              );
+            })}
           </Col>
         </Row>
       </div>

@@ -9,13 +9,14 @@ import {
   InputGroup,
   FormControl,
 } from "react-bootstrap";
+import { useHistory } from "react-router-dom";
 
 function ProvaAluno() {
+  const history = useHistory();
   const [enunciado, setEnunciado] = useState("");
   const [resp, setResp] = useState("");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
-  const [id, setId] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [compilationAmount, setCompilationAmount] = useState(5);
   const [questionList, setQuestionList] = useState([
@@ -32,67 +33,70 @@ function ProvaAluno() {
       const res = await fetch(`http://localhost:4000/api/student_questions`, {
         method: "POST",
         body: JSON.stringify({
-          testId: 3,
+          testId: history.location.state.test_id,
         }),
         headers: { "Content-Type": "application/json" },
       });
       const questions = await res.json();
       questions.map(async (question) => {
         question.answer = "";
-        question.alt = [];
       });
       console.log(questions);
       setQuestionList(questions);
     };
-    const myAlternatives = async (id) => {
-      console.log(questionList[currentIndex].question_id);
-      const alt = await fetch(
-        `http://localhost:4000/api/student_alternatives`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            questionId: id,
-          }),
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      return await alt.json();
-    };
     myFunction();
-    questionList.map(async (question) => {
-      if (question.type === 3) {
-        question.alt = await myAlternatives(question.id);
-      }
-    });
-  }, []);
+  }, [history.location.state.test_id]);
 
   const compile = useCallback(async () => {
     setOutput("Compilando...");
     const res = await fetch(`http://localhost:4000/api/compile`, {
       method: "POST",
       body: JSON.stringify({
-        id,
+        id: currentIndex,
         resp,
       }),
       headers: { "Content-Type": "application/json" },
     });
     const topics = await res.json();
     setOutput(topics.output);
-  }, [id, resp]);
+  }, [resp, currentIndex]);
 
   const execute = useCallback(async () => {
     setOutput("Executando...");
     const res = await fetch(`http://localhost:4000/api/execute`, {
       method: "POST",
       body: JSON.stringify({
-        id,
+        id: currentIndex,
         input,
       }),
       headers: { "Content-Type": "application/json" },
     });
     const topics = await res.json();
     setOutput(topics.output);
-  }, [id, input]);
+  }, [input, currentIndex]);
+
+  const endTest = useCallback(async () => {
+    console.log(questionList);
+    questionList.map(async (question) => {
+      const res = await fetch(`http://localhost:4000/api/newStudentQuestion`, {
+        method: "POST",
+        body: JSON.stringify({
+          answer: question.answer,
+          time: 0,
+          type: question.type,
+          comp: 0,
+          testId: history.location.state.test_id,
+          studentId: history.location.state.student_id,
+          questionId: question.question_id,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      console.log(res);
+    });
+    history.push({
+      pathname: "/login",
+    });
+  }, [history, questionList]);
 
   return (
     <>
@@ -119,32 +123,7 @@ function ProvaAluno() {
                 <ListGroup.Item>Carregando...</ListGroup.Item>
               )}
             </ListGroup>
-            <br></br>
-            <Row>
-              {questionList[currentIndex].type === 2 && (
-                <>
-                  <Col>
-                    <Button
-                      block
-                      variant="danger"
-                      onClick={() => {
-                        compile();
-                        setCompilationAmount(compilationAmount - 1);
-                      }}
-                    >
-                      Compilar [{compilationAmount}]
-                    </Button>
-                  </Col>
-                  <Col>
-                    <Button block variant="success" onClick={() => execute()}>
-                      Executar
-                    </Button>
-                  </Col>
-                </>
-              )}
-            </Row>
-            <br></br>
-            <Button block="true" variant="info">
+            <Button block="true" variant="info" onClick={endTest}>
               Finalizar Prova
             </Button>
           </Col>
@@ -178,7 +157,7 @@ function ProvaAluno() {
                     }}
                     value={resp}
                     as="textarea"
-                    rows={10}
+                    rows={20}
                     type="text"
                     placeholder="Resposta da questão"
                   />
@@ -189,12 +168,20 @@ function ProvaAluno() {
                   <Form.Label>Código</Form.Label>
                   <div className="codeEditor">
                     <Form.Control
-                      onChange={(r) => setResp(r.target.value)}
-                      height={300}
-                      width={1487}
+                      className="fixed-textarea"
+                      onChange={(r) => {
+                        setResp(r.target.value);
+                        const newQuestionList = [...questionList];
+                        const string = r.target.value.replace('"', '""');
+                        newQuestionList[currentIndex].answer = string;
+                        setQuestionList(newQuestionList);
+                        console.log(newQuestionList);
+                      }}
+                      rows={10}
                       type="text"
                       as="textarea"
                       value={resp}
+                      placeholder="Código da questão"
                     />
                   </div>
                   <Row>
@@ -224,6 +211,26 @@ function ProvaAluno() {
                       />
                     </Col>
                   </Row>
+                  <br></br>
+                  <Row>
+                    <Col>
+                      <Button
+                        block
+                        variant="danger"
+                        onClick={() => {
+                          compile();
+                          setCompilationAmount(compilationAmount - 1);
+                        }}
+                      >
+                        Compilar [{compilationAmount}]
+                      </Button>
+                    </Col>
+                    <Col>
+                      <Button block variant="success" onClick={() => execute()}>
+                        Executar
+                      </Button>
+                    </Col>
+                  </Row>
                 </Form.Group>
               )}
               {questionList[currentIndex].type === 3 && (
@@ -234,7 +241,18 @@ function ProvaAluno() {
                         <Form.Group key={index}>
                           <InputGroup>
                             <InputGroup.Prepend>
-                              <InputGroup.Checkbox />
+                              <InputGroup.Checkbox
+                                checked={
+                                  questionList[currentIndex].answer === index
+                                    ? true
+                                    : false
+                                }
+                                onClick={() => {
+                                  const newQuestionList = [...questionList];
+                                  newQuestionList[currentIndex].answer = index;
+                                  setQuestionList(newQuestionList);
+                                }}
+                              />
                             </InputGroup.Prepend>
                             <FormControl
                               key={index}
@@ -243,7 +261,6 @@ function ProvaAluno() {
                             />
                           </InputGroup>
                         </Form.Group>
-                        <br></br>
                       </>
                     );
                   })}

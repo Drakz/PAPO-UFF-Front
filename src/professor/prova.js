@@ -228,7 +228,8 @@ function ProfessorPerfil() {
   const [testValue, setTestValue] = useState([]);
   //função para a criação de uma prova
   const newTest = useCallback(async () => {
-    const res = await fetch(`/api/newTest`, {
+    console.log("como pode?");
+    const res = await fetch(`http://localhost:4000/api/newTest`, {
       method: "POST",
       body: JSON.stringify({
         testName,
@@ -252,7 +253,7 @@ function ProfessorPerfil() {
         headers: { "Content-Type": "application/json" },
       });
       const examQuestion = await res.json();
-      const rel = await fetch(`http://localhost:4000/api/newTestRel`, {
+      fetch(`http://localhost:4000/api/newTestRel`, {
         method: "POST",
         body: JSON.stringify({
           testId: exam[0].test_id,

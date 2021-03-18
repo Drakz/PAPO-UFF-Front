@@ -6,8 +6,10 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import { useHistory } from "react-router-dom";
 
 function Login() {
+  const history = useHistory();
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
 
@@ -24,7 +26,13 @@ function Login() {
       .then((response) => response.json())
       .then((response) => {
         console.log(response.url);
-        window.location.pathname = response.url;
+        history.push({
+          pathname: response.url,
+          state: {
+            id: 1,
+            prof_id: 2,
+          },
+        });
       })
       .catch((err) => console.error(err));
   };

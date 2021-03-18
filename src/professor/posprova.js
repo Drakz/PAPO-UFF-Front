@@ -1,7 +1,7 @@
 import React from "react";
 import Professor from "./professor";
 import "../App.css";
-import { Row, Col, Card, ListGroup, Button } from "react-bootstrap";
+import { Row, Col, Card, ListGroup } from "react-bootstrap";
 import Chart from "react-apexcharts";
 
 function PosProva() {
