@@ -131,10 +131,10 @@ function Banco({
       } else if (type === 3) {
         var aux = [...multipleChoiceAnswer];
         var corrects = [];
-        answer.correct.map((correct) => {
+        answer.correct.forEach((correct) => {
           corrects = [...corrects, parseInt(correct.checked)];
         });
-        answer.alternatives.map((alternative, index) => {
+        answer.alternatives.forEach((alternative, index) => {
           if (corrects.includes(index)) {
             aux = [
               ...aux,

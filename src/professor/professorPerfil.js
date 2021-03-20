@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Professor from "./professor";
 import "../App.css";
 import { Row, Col, Image, Card, Button } from "react-bootstrap";
@@ -23,6 +23,18 @@ function ProfessorPerfil() {
   }, [history.location.state.prof_id]);
   //função de retorno
 
+  const redirect = useCallback(
+    (test_id) => {
+      history.push({
+        pathname: "/professor/posProva",
+        state: {
+          test_id: test_id,
+        },
+      });
+    },
+    [history]
+  );
+
   return (
     <>
       <Professor />
@@ -37,7 +49,6 @@ function ProfessorPerfil() {
           </Col>
           <Col className="centerProfessor" md="10">
             {testList.map((test) => {
-              console.log("oie");
               return (
                 <>
                   <Card>
@@ -45,7 +56,12 @@ function ProfessorPerfil() {
                     <Card.Body>
                       <Card.Title>Teste</Card.Title>
                       <Card.Text>Outro teste</Card.Text>
-                      <Button variant="primary">Correção</Button>
+                      <Button
+                        variant="primary"
+                        onClick={() => redirect(test.test_id)}
+                      >
+                        Correção
+                      </Button>
                     </Card.Body>
                   </Card>
                   <br></br>

@@ -28,6 +28,16 @@
   color: #61dafb;
 }
 
+.correctAnswer {
+  color: white !important;
+  background-color: darkgreen !important;
+}
+
+.wrongAnswer {
+  color: white !important; 
+  background-color: darkred !important;
+}
+
 .graybackground {
   background-color: #cccccc;
 }

@@ -25,7 +25,6 @@ function Login() {
     })
       .then((response) => response.json())
       .then((response) => {
-        console.log(response.url);
         history.push({
           pathname: response.url,
           state: {

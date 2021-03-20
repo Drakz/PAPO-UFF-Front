@@ -41,7 +41,6 @@ function ProvaAluno() {
       questions.map(async (question) => {
         question.answer = "";
       });
-      console.log(questions);
       setQuestionList(questions);
     };
     myFunction();
@@ -76,9 +75,8 @@ function ProvaAluno() {
   }, [input, currentIndex]);
 
   const endTest = useCallback(async () => {
-    console.log(questionList);
     questionList.map(async (question) => {
-      const res = await fetch(`http://localhost:4000/api/newStudentQuestion`, {
+      await fetch(`http://localhost:4000/api/newStudentQuestion`, {
         method: "POST",
         body: JSON.stringify({
           answer: question.answer,
@@ -91,7 +89,6 @@ function ProvaAluno() {
         }),
         headers: { "Content-Type": "application/json" },
       });
-      console.log(res);
     });
     history.push({
       pathname: "/login",
@@ -175,7 +172,6 @@ function ProvaAluno() {
                         const string = r.target.value.replace('"', '""');
                         newQuestionList[currentIndex].answer = string;
                         setQuestionList(newQuestionList);
-                        console.log(newQuestionList);
                       }}
                       rows={10}
                       type="text"
