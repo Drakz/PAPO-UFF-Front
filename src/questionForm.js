@@ -40,12 +40,13 @@ function QuestionForm({
     setMultipleChoiceAnswer,
     inOutList,
     setInOutList,
+    compilation,
+    setCompilation,
   } = useContext(QuestionContext);
 
   const [subjectsList, setSubjectsList] = useState([]);
   const [topicsList, setTopicsList] = useState([]);
   const [answerAtiva, setAnswerAtiva] = useState(false);
-  //const [compilation, setCompilation] = useState(0);
   const [alert, setAlert] = useState(false);
 
   const clearAnswers = useCallback(() => {
@@ -336,6 +337,8 @@ function QuestionForm({
                   <Form.Label>Número de Compilações </Form.Label>
                   <Form.Control
                     rows={1}
+                    value={compilation}
+                    onChange={(v) => setCompilation(v.target.value)}
                     type="number"
                     placeholder="Número de Compilações"
                   />

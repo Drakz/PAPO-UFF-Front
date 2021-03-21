@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Professor from "./professor";
 import "../App.css";
 import {
@@ -11,6 +11,7 @@ import {
   Form,
   InputGroup,
   FormControl,
+  Button,
 } from "react-bootstrap";
 import Chart from "react-apexcharts";
 import { useHistory } from "react-router-dom";
@@ -75,6 +76,7 @@ function PosProva() {
           method: "POST",
           body: JSON.stringify({
             student_ids: stringStudents.toString(),
+            test_id: history.location.state.test_id,
           }),
           headers: { "Content-Type": "application/json" },
         }
@@ -137,6 +139,48 @@ function PosProva() {
       },
     ],
   };
+
+  const [correctsInputs, setCorrectsInputs] = useState(0);
+  const [incorrectOutputs, setIncorrectOutputs] = useState("");
+  const [tam, setTam] = useState(0);
+
+  const getProgrammingFeedback = useCallback(
+    (id) => {
+      console.log(questionList[id].answer.length);
+      setTam(() => {
+        return questionList[id].answer.length;
+      });
+      questionList[id].answer.map(async (obj, index) => {
+        const res = await fetch(`http://localhost:4000/api/execute`, {
+          method: "POST",
+          body: JSON.stringify({
+            id: questionList[id].question_id,
+            input: obj.input,
+            student_id: studentList[id].student_id,
+            index: index,
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
+        const outputQuery = await res.json();
+        if (obj.output === outputQuery.output) {
+          console.log("entrei aqui");
+          setCorrectsInputs((correctsInputs) => correctsInputs + 1);
+        } else {
+          setIncorrectOutputs(
+            (incorrectOutputs) =>
+              incorrectOutputs +
+              "< " +
+              obj.input.toString() +
+              " : " +
+              outputQuery.output +
+              " >"
+          );
+        }
+      });
+    },
+    [questionList, studentList]
+  );
+
   return (
     <>
       <Professor />
@@ -164,12 +208,15 @@ function PosProva() {
                       answerList.filter((element) => {
                         if (element.student_id === student.student_id) {
                           return element;
+                        } else {
+                          return null;
                         }
                       })
                     );
-                    console.log(currentStudent);
                     setQuestionsDisplay(true);
                     setGraphs(false);
+                    if (questionList[index].type === 2)
+                      getProgrammingFeedback(index);
                   }}
                 >
                   {student.name}
@@ -210,8 +257,18 @@ function PosProva() {
                             <Form.Group>
                               <Form.Label>Feedback</Form.Label>
                               <Form.Control
-                                className="fixed-textarea"
-                                value={"oi"}
+                                className={
+                                  parseInt(answer.answer) ===
+                                  questionList[index].answer[0].answer
+                                    ? "correctAnswer fixed-textarea"
+                                    : "checkAnswer fixed-textarea"
+                                }
+                                value={
+                                  parseInt(answer.answer) ===
+                                  questionList[index].answer[0].answer
+                                    ? "Resposta Correta!!!"
+                                    : "Por favor, verificar resposta do aluno."
+                                }
                                 as="textarea"
                                 rows={1}
                                 disabled={true}
@@ -220,26 +277,28 @@ function PosProva() {
                           </>
                         )}
                         {questionList[index].type === 2 && (
-                          <Form.Group>
-                            <Form.Label>Gabarito</Form.Label>
-                            <Form.Control
-                              className="fixed-textarea"
-                              value={questionList[index].answer.map(
-                                (obj, index) => {
-                                  return (
-                                    "< Input: " +
-                                    obj.input +
-                                    " Output: " +
-                                    obj.output +
-                                    " >"
-                                  );
-                                }
-                              )}
-                              as="textarea"
-                              rows={3}
-                              disabled={true}
-                            />
-                          </Form.Group>
+                          <>
+                            <Form.Group>
+                              <Form.Label>Gabarito</Form.Label>
+                              <Form.Control
+                                className="fixed-textarea"
+                                value={questionList[index].answer.map(
+                                  (obj, index) => {
+                                    return (
+                                      "< Input: " +
+                                      obj.input +
+                                      " Output: " +
+                                      obj.output +
+                                      " >"
+                                    );
+                                  }
+                                )}
+                                as="textarea"
+                                rows={3}
+                                disabled={true}
+                              />
+                            </Form.Group>
+                          </>
                         )}
                         {questionList[index].type === 3 && (
                           <Form.Group>
@@ -276,16 +335,37 @@ function PosProva() {
                           </Form.Group>
                         )}
                         {questionList[index].type !== 3 && (
-                          <Form.Group>
-                            <Form.Label>Resposta Aluno</Form.Label>
-                            <Form.Control
-                              className="fixed-textarea"
-                              value={answer.answer}
-                              as="textarea"
-                              rows={3}
-                              disabled={true}
-                            />
-                          </Form.Group>
+                          <>
+                            <Form.Group>
+                              <Form.Label>Resposta Aluno</Form.Label>
+                              <Form.Control
+                                className="fixed-textarea"
+                                value={answer.answer}
+                                as="textarea"
+                                rows={3}
+                                disabled={true}
+                              />
+                            </Form.Group>
+                            <Form.Group>
+                              <Form.Label>Feedback</Form.Label>
+                              <Form.Control
+                                value={
+                                  tam === correctsInputs
+                                    ? "A questão está correta!"
+                                    : correctsInputs === 0
+                                    ? "A questão está incorreta"
+                                    : "A questão está " +
+                                      (correctsInputs / tam) * 100 +
+                                      "% correta. " +
+                                      "Pares Input-Output Incorretos: " +
+                                      incorrectOutputs
+                                }
+                                as="textarea"
+                                rows={3}
+                                disabled={true}
+                              />
+                            </Form.Group>
+                          </>
                         )}
                       </Form>
                     </Card.Body>

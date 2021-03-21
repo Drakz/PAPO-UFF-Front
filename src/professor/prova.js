@@ -27,6 +27,7 @@ function ComponenteDoRafael({
     topic,
     inOutList,
     multipleChoiceAnswer,
+    compilation,
   },
   questionList,
   setQuestionList,
@@ -100,6 +101,16 @@ function ComponenteDoRafael({
     },
     [setQuestionList, index]
   );
+  const setCompilation = useCallback(
+    (compilation) => {
+      setQuestionList((questionList) => {
+        const questionListAux = [...questionList];
+        questionListAux[index].compilation = compilation;
+        return questionListAux;
+      });
+    },
+    [setQuestionList, index]
+  );
   const setSubject = useCallback(
     (subject) => {
       setQuestionList((questionList) => {
@@ -166,6 +177,8 @@ function ComponenteDoRafael({
         setInOutList,
         multipleChoiceAnswer,
         setMultipleChoiceAnswer,
+        compilation,
+        setCompilation,
       }}
     >
       <div key={index} style={{ marginBottom: 5 }}>
@@ -259,7 +272,7 @@ function ProfessorPerfil() {
           testId: exam[0].test_id,
           questionId: examQuestion.id,
           value: question.value,
-          compilation: 0,
+          compilation: question.compilation,
         }),
         headers: { "Content-Type": "application/json" },
       });
@@ -285,6 +298,7 @@ function ProfessorPerfil() {
         topic: 4,
         multipleChoiceAnswer: [],
         inOutList: [],
+        compilation: 0,
       },
     ]);
   }, [questionList]);
@@ -314,6 +328,7 @@ function ProfessorPerfil() {
           inOutList,
           multipleChoiceAnswer,
           answer,
+          compilation: 0,
         },
       ]);
       handleClose();

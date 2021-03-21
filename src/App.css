@@ -33,6 +33,11 @@
   background-color: darkgreen !important;
 }
 
+.checkAnswer{
+  color: black !important;
+  background-color: yellow !important;
+}
+
 .wrongAnswer {
   color: white !important; 
   background-color: darkred !important;

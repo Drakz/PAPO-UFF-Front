@@ -40,8 +40,11 @@ function ProvaAluno() {
       const questions = await res.json();
       questions.map(async (question) => {
         question.answer = "";
+        question.input = "";
+        question.output = "";
       });
       setQuestionList(questions);
+      console.log(questions);
     };
     myFunction();
   }, [history.location.state.test_id]);
@@ -51,28 +54,37 @@ function ProvaAluno() {
     const res = await fetch(`http://localhost:4000/api/compile`, {
       method: "POST",
       body: JSON.stringify({
-        id: currentIndex,
+        id: questionList[currentIndex].question_id,
+        student_id: history.location.state.student_id,
         resp,
       }),
       headers: { "Content-Type": "application/json" },
     });
     const topics = await res.json();
     setOutput(topics.output);
-  }, [resp, currentIndex]);
+    const newQuestionList = [...questionList];
+    newQuestionList[currentIndex].output = topics.output;
+    setQuestionList(newQuestionList);
+  }, [resp, currentIndex, questionList, history.location.state.student_id]);
 
   const execute = useCallback(async () => {
     setOutput("Executando...");
     const res = await fetch(`http://localhost:4000/api/execute`, {
       method: "POST",
       body: JSON.stringify({
-        id: currentIndex,
+        id: questionList[currentIndex].question_id,
         input,
+        student_id: history.location.state.student_id,
+        index: "aluno",
       }),
       headers: { "Content-Type": "application/json" },
     });
     const topics = await res.json();
     setOutput(topics.output);
-  }, [input, currentIndex]);
+    const newQuestionList = [...questionList];
+    newQuestionList[currentIndex].output = topics.output;
+    setQuestionList(newQuestionList);
+  }, [input, currentIndex, questionList, history.location.state.student_id]);
 
   const endTest = useCallback(async () => {
     questionList.map(async (question) => {
@@ -82,7 +94,7 @@ function ProvaAluno() {
           answer: question.answer,
           time: 0,
           type: question.type,
-          comp: 0,
+          comp: question.compilations,
           testId: history.location.state.test_id,
           studentId: history.location.state.student_id,
           questionId: question.question_id,
@@ -110,6 +122,9 @@ function ProvaAluno() {
                     onClick={() => {
                       setEnunciado(questionList[index].description);
                       setResp(questionList[index].answer);
+                      setInput(questionList[index].input);
+                      setOutput(questionList[index].output);
+                      setCompilationAmount(questionList[index].compilations);
                       setCurrentIndex(index);
                     }}
                   >
@@ -169,8 +184,7 @@ function ProvaAluno() {
                       onChange={(r) => {
                         setResp(r.target.value);
                         const newQuestionList = [...questionList];
-                        const string = r.target.value.replace('"', '""');
-                        newQuestionList[currentIndex].answer = string;
+                        newQuestionList[currentIndex].answer = r.target.value;
                         setQuestionList(newQuestionList);
                       }}
                       rows={10}
@@ -185,7 +199,12 @@ function ProvaAluno() {
                       <Form.Label>Input</Form.Label>
                       <Form.Control
                         className="fixed-textarea"
-                        onChange={(i) => setInput(i.target.value)}
+                        onChange={(i) => {
+                          setInput(i.target.value);
+                          const newQuestionList = [...questionList];
+                          newQuestionList[currentIndex].input = i.target.value;
+                          setQuestionList(newQuestionList);
+                        }}
                         value={input}
                         as="textarea"
                         rows={7}
@@ -197,7 +216,6 @@ function ProvaAluno() {
                       <Form.Label>Output</Form.Label>
                       <Form.Control
                         className="fixed-textarea"
-                        onChange={(o) => setOutput(o.target.value)}
                         value={output}
                         as="textarea"
                         rows={7}
@@ -215,6 +233,8 @@ function ProvaAluno() {
                         variant="danger"
                         onClick={() => {
                           compile();
+                          questionList[currentIndex].compilations =
+                            questionList[currentIndex].compilations - 1;
                           setCompilationAmount(compilationAmount - 1);
                         }}
                       >
