@@ -9,7 +9,7 @@ function ProfessorPerfil() {
   const history = useHistory();
   useEffect(() => {
     const myFunction = async () => {
-      const res = await fetch(`http://localhost:4000/api/tests`, {
+      const res = await fetch(`https://2724b8b49587.ngrok.io/api/tests`, {
         method: "POST",
         body: JSON.stringify({
           prof_id: history.location.state.prof_id,
@@ -29,6 +29,7 @@ function ProfessorPerfil() {
         pathname: "/professor/posProva",
         state: {
           test_id: test_id,
+          prof_id: history.location.state.prof_id,
         },
       });
     },
@@ -37,12 +38,13 @@ function ProfessorPerfil() {
 
   return (
     <>
-      <Professor />
+      <Professor id={history.location.state.prof_id} />
       <div className="divPage">
         <Row>
           <Col className="sidebarProfessor">
             <Image
-              src="http://www2.ic.uff.br/~bazilio/imagens/eu2.jpg"
+              style={{ height: 96, width: 96 }}
+              src="https://cdn2.iconfinder.com/data/icons/facebook-51/32/FACEBOOK_LINE-01-512.png"
               rounded
             />
             <h3>Bazílio</h3>
@@ -51,11 +53,12 @@ function ProfessorPerfil() {
             {testList.map((test) => {
               return (
                 <>
-                  <Card>
+                  <Card style={{ margin: "12px", width: "28rem" }}>
                     <Card.Header as="h5">{test.name}</Card.Header>
                     <Card.Body>
-                      <Card.Title>Teste</Card.Title>
-                      <Card.Text>Outro teste</Card.Text>
+                      Código da prova: {test.test_id}
+                      <br></br>
+                      <br></br>
                       <Button
                         variant="primary"
                         onClick={() => redirect(test.test_id)}

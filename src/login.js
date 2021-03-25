@@ -14,7 +14,7 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const getLogin = (_) => {
-    fetch(`http://localhost:4000/api/login`, {
+    fetch(`https://2724b8b49587.ngrok.io/api/login`, {
       method: "POST",
       withCredentials: true,
       body: JSON.stringify({
@@ -25,13 +25,24 @@ function Login() {
     })
       .then((response) => response.json())
       .then((response) => {
-        history.push({
-          pathname: response.url,
-          state: {
-            id: 1,
-            prof_id: 2,
-          },
-        });
+        console.log(response);
+        if (response.name !== undefined) {
+          history.push({
+            pathname: response.url,
+            state: {
+              id: response.id,
+              name: response.name,
+            },
+          });
+        } else {
+          history.push({
+            pathname: response.url,
+            state: {
+              id: 1,
+              prof_id: response.user_id,
+            },
+          });
+        }
       })
       .catch((err) => console.error(err));
   };

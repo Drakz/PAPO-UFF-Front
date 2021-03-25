@@ -11,7 +11,7 @@ import {
   Form,
   InputGroup,
   FormControl,
-  Button,
+  Accordion,
 } from "react-bootstrap";
 import Chart from "react-apexcharts";
 import { useHistory } from "react-router-dom";
@@ -28,7 +28,7 @@ function PosProva() {
 
   useEffect(() => {
     const myFunction = async () => {
-      const res = await fetch(`http://localhost:4000/api/test`, {
+      const res = await fetch(`https://2724b8b49587.ngrok.io/api/test`, {
         method: "POST",
         body: JSON.stringify({
           test_id: history.location.state.test_id,
@@ -38,7 +38,7 @@ function PosProva() {
       const test = await res.json();
       setTestName(test[0].name);
       const questionListQuery = await fetch(
-        `http://localhost:4000/api/professor_questions`,
+        `https://2724b8b49587.ngrok.io/api/professor_questions`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -50,28 +50,34 @@ function PosProva() {
       const questionListRes = await questionListQuery.json();
       console.log(questionListRes);
       setQuestionList(questionListRes);
-      const query = await fetch(`http://localhost:4000/api/test_students`, {
-        method: "POST",
-        body: JSON.stringify({
-          test_id: history.location.state.test_id,
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
+      const query = await fetch(
+        `https://2724b8b49587.ngrok.io/api/test_students`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            test_id: history.location.state.test_id,
+          }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const students = await query.json();
       const stringStudents = students.map((student) => {
         return student.student_id;
       });
-      const queryStudent = await fetch(`http://localhost:4000/api/students`, {
-        method: "POST",
-        body: JSON.stringify({
-          student_ids: stringStudents.toString(),
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
+      const queryStudent = await fetch(
+        `https://2724b8b49587.ngrok.io/api/students`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            student_ids: stringStudents.toString(),
+          }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const studentList = await queryStudent.json();
       setStudentList(studentList);
       const queryStudentAnswer = await fetch(
-        `http://localhost:4000/api/students_answer`,
+        `https://2724b8b49587.ngrok.io/api/students_answer`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -145,45 +151,53 @@ function PosProva() {
   const [tam, setTam] = useState(0);
 
   const getProgrammingFeedback = useCallback(
-    (id) => {
-      console.log(questionList[id].answer.length);
-      setTam(() => {
-        return questionList[id].answer.length;
-      });
-      questionList[id].answer.map(async (obj, index) => {
-        const res = await fetch(`http://localhost:4000/api/execute`, {
-          method: "POST",
-          body: JSON.stringify({
-            id: questionList[id].question_id,
-            input: obj.input,
-            student_id: studentList[id].student_id,
-            index: index,
-          }),
-          headers: { "Content-Type": "application/json" },
-        });
-        const outputQuery = await res.json();
-        if (obj.output === outputQuery.output) {
-          console.log("entrei aqui");
-          setCorrectsInputs((correctsInputs) => correctsInputs + 1);
-        } else {
-          setIncorrectOutputs(
-            (incorrectOutputs) =>
-              incorrectOutputs +
-              "< " +
-              obj.input.toString() +
-              " : " +
-              outputQuery.output +
-              " >"
-          );
+    (id, studentId) => {
+      questionList.forEach((question) => {
+        if (question.type === 2) {
+          setTam(() => {
+            return question.answer.length;
+          });
+          question.answer.map(async (obj, index) => {
+            const res = await fetch(
+              `https://2724b8b49587.ngrok.io/api/execute`,
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  id: question.question_id,
+                  input: obj.input,
+                  student_id: studentList[id].student_id,
+                  index: index,
+                }),
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+            const outputQuery = await res.json();
+            if (obj.output === outputQuery.output) {
+              console.log("entrei aqui");
+              setCorrectsInputs((correctsInputs) => correctsInputs + 1);
+            } else {
+              setIncorrectOutputs(
+                (incorrectOutputs) =>
+                  incorrectOutputs +
+                  "< " +
+                  obj.input.toString() +
+                  " : " +
+                  outputQuery.output +
+                  " >"
+              );
+            }
+          });
         }
       });
     },
     [questionList, studentList]
   );
 
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
   return (
     <>
-      <Professor />
+      <Professor id={history.location.state.prof_id} />
       <div className="divPage">
         <Row>
           <Col className="sidebarProfessor">
@@ -202,21 +216,24 @@ function PosProva() {
               </ListGroup.Item>
               {studentList.map((student, index) => (
                 <ListGroup.Item
+                  variant={currentIndex === index && "primary"}
                   action
                   onClick={() => {
-                    setCurrentStudent(
-                      answerList.filter((element) => {
-                        if (element.student_id === student.student_id) {
-                          return element;
-                        } else {
-                          return null;
-                        }
-                      })
-                    );
-                    setQuestionsDisplay(true);
-                    setGraphs(false);
-                    if (questionList[index].type === 2)
-                      getProgrammingFeedback(index);
+                    if (index !== currentIndex) {
+                      setCurrentStudent(
+                        answerList.filter((element) => {
+                          if (element.student_id === student.student_id) {
+                            return element;
+                          } else {
+                            return null;
+                          }
+                        })
+                      );
+                      setCurrentIndex(index);
+                      setQuestionsDisplay(true);
+                      setGraphs(false);
+                      getProgrammingFeedback(index, student.student_id);
+                    }
                   }}
                 >
                   {student.name}
@@ -224,155 +241,171 @@ function PosProva() {
               ))}
             </ListGroup>
           </Col>
-          <Col className="centerProfessor" md="10">
-            {questionsDisplay &&
-              currentStudent.map((answer, index) => (
-                <>
-                  <Card>
-                    <Card.Header>{questionList[index].title}</Card.Header>
-                    <Card.Body>
-                      <Form>
-                        <Form.Group>
-                          <Form.Label>Enunciado</Form.Label>
-                          <Form.Control
-                            className="fixed-textarea"
-                            value={questionList[index].description}
-                            as="textarea"
-                            rows={3}
-                            disabled={true}
-                          />
-                        </Form.Group>
-                        {questionList[index].type === 1 && (
-                          <>
-                            <Form.Group>
-                              <Form.Label>Gabarito</Form.Label>
-                              <Form.Control
-                                className="fixed-textarea"
-                                value={questionList[index].answer[0].answer}
-                                as="textarea"
-                                rows={3}
-                                disabled={true}
-                              />
-                            </Form.Group>
-                            <Form.Group>
-                              <Form.Label>Feedback</Form.Label>
-                              <Form.Control
-                                className={
-                                  parseInt(answer.answer) ===
-                                  questionList[index].answer[0].answer
-                                    ? "correctAnswer fixed-textarea"
-                                    : "checkAnswer fixed-textarea"
-                                }
-                                value={
-                                  parseInt(answer.answer) ===
-                                  questionList[index].answer[0].answer
-                                    ? "Resposta Correta!!!"
-                                    : "Por favor, verificar resposta do aluno."
-                                }
-                                as="textarea"
-                                rows={1}
-                                disabled={true}
-                              />
-                            </Form.Group>
-                          </>
-                        )}
-                        {questionList[index].type === 2 && (
-                          <>
-                            <Form.Group>
-                              <Form.Label>Gabarito</Form.Label>
-                              <Form.Control
-                                className="fixed-textarea"
-                                value={questionList[index].answer.map(
-                                  (obj, index) => {
-                                    return (
-                                      "< Input: " +
-                                      obj.input +
-                                      " Output: " +
-                                      obj.output +
-                                      " >"
-                                    );
-                                  }
-                                )}
-                                as="textarea"
-                                rows={3}
-                                disabled={true}
-                              />
-                            </Form.Group>
-                          </>
-                        )}
-                        {questionList[index].type === 3 && (
-                          <Form.Group>
-                            <Form.Label>Gabarito</Form.Label>
-                            {questionList[index].alt.map(
-                              (_alt, indexInside) => {
-                                return (
-                                  <>
-                                    <Form.Group key={index}>
-                                      <InputGroup>
-                                        <FormControl
-                                          className={
-                                            parseInt(answer.answer) ===
-                                            parseInt(indexInside)
-                                              ? parseInt(answer.answer) ===
-                                                parseInt(
-                                                  questionList[index].answer[0]
-                                                    .answer
-                                                )
-                                                ? "correctAnswer"
-                                                : "wrongAnswer"
-                                              : ""
-                                          }
-                                          key={index}
-                                          value={_alt.alternative}
-                                          disabled
-                                        />
-                                      </InputGroup>
-                                    </Form.Group>
-                                  </>
-                                );
-                              }
-                            )}
-                          </Form.Group>
-                        )}
-                        {questionList[index].type !== 3 && (
-                          <>
-                            <Form.Group>
-                              <Form.Label>Resposta Aluno</Form.Label>
-                              <Form.Control
-                                className="fixed-textarea"
-                                value={answer.answer}
-                                as="textarea"
-                                rows={3}
-                                disabled={true}
-                              />
-                            </Form.Group>
-                            <Form.Group>
-                              <Form.Label>Feedback</Form.Label>
-                              <Form.Control
-                                value={
-                                  tam === correctsInputs
-                                    ? "A questão está correta!"
-                                    : correctsInputs === 0
-                                    ? "A questão está incorreta"
-                                    : "A questão está " +
-                                      (correctsInputs / tam) * 100 +
-                                      "% correta. " +
-                                      "Pares Input-Output Incorretos: " +
-                                      incorrectOutputs
-                                }
-                                as="textarea"
-                                rows={3}
-                                disabled={true}
-                              />
-                            </Form.Group>
-                          </>
-                        )}
-                      </Form>
-                    </Card.Body>
-                  </Card>
-                  <br></br>
-                </>
-              ))}
+          <Col className="centerProfessorProva" md="10">
+            {questionsDisplay && (
+              <Accordion defaultActiveKey={1}>
+                {currentStudent.map((answer, index) => (
+                  <>
+                    <div key={index} style={{ marginBottom: 5 }}>
+                      <Card>
+                        <Accordion.Toggle as={Card.Header} eventKey={index + 1}>
+                          {questionList[index].title}
+                        </Accordion.Toggle>
+                        <Accordion.Collapse eventKey={index + 1}>
+                          <Card.Body>
+                            <Form>
+                              <Form.Group>
+                                <Form.Label>Enunciado</Form.Label>
+                                <Form.Control
+                                  className="fixed-textarea"
+                                  value={questionList[index].description}
+                                  as="textarea"
+                                  rows={3}
+                                  disabled={true}
+                                />
+                              </Form.Group>
+                              {questionList[index].type === 1 && (
+                                <>
+                                  <Form.Group>
+                                    <Form.Label>Gabarito</Form.Label>
+                                    <Form.Control
+                                      className="fixed-textarea"
+                                      value={
+                                        questionList[index].answer[0].answer
+                                      }
+                                      as="textarea"
+                                      rows={3}
+                                      disabled={true}
+                                    />
+                                  </Form.Group>
+                                  <Form.Group>
+                                    <Form.Label>Feedback</Form.Label>
+                                    <Form.Control
+                                      className={
+                                        parseInt(answer.answer) ===
+                                        questionList[index].answer[0].answer
+                                          ? "correctAnswer fixed-textarea"
+                                          : "checkAnswer fixed-textarea"
+                                      }
+                                      value={
+                                        parseInt(answer.answer) ===
+                                        questionList[index].answer[0].answer
+                                          ? "Resposta Correta!!!"
+                                          : "Por favor, verificar resposta do aluno."
+                                      }
+                                      as="textarea"
+                                      rows={1}
+                                      disabled={true}
+                                    />
+                                  </Form.Group>
+                                </>
+                              )}
+                              {questionList[index].type === 2 && (
+                                <>
+                                  <Form.Group>
+                                    <Form.Label>Gabarito</Form.Label>
+                                    <Form.Control
+                                      className="fixed-textarea"
+                                      value={questionList[index].answer.map(
+                                        (obj, index) => {
+                                          return (
+                                            "< Input: " +
+                                            obj.input +
+                                            " Output: " +
+                                            obj.output +
+                                            " >"
+                                          );
+                                        }
+                                      )}
+                                      as="textarea"
+                                      rows={3}
+                                      disabled={true}
+                                    />
+                                  </Form.Group>
+                                  <Form.Group>
+                                    <Form.Label>Feedback</Form.Label>
+                                    <Form.Control
+                                      value={
+                                        tam === correctsInputs
+                                          ? "A questão está correta!"
+                                          : correctsInputs === 0
+                                          ? "A questão está incorreta"
+                                          : "A questão está " +
+                                            (
+                                              (correctsInputs / tam) *
+                                              100
+                                            ).toFixed(2) +
+                                            "% correta. " +
+                                            "Pares Input-Output Incorretos: " +
+                                            incorrectOutputs
+                                      }
+                                      as="textarea"
+                                      rows={3}
+                                      disabled={true}
+                                    />
+                                  </Form.Group>
+                                </>
+                              )}
+                              {questionList[index].type === 3 && (
+                                <Form.Group>
+                                  <Form.Label>Gabarito</Form.Label>
+                                  {questionList[index].alt.map(
+                                    (_alt, indexInside) => {
+                                      return (
+                                        <>
+                                          <Form.Group key={index}>
+                                            <InputGroup>
+                                              <FormControl
+                                                className={
+                                                  parseInt(answer.answer) ===
+                                                  parseInt(indexInside)
+                                                    ? parseInt(
+                                                        answer.answer
+                                                      ) ===
+                                                      parseInt(
+                                                        questionList[index]
+                                                          .answer[0].answer
+                                                      )
+                                                      ? "correctAnswer"
+                                                      : "wrongAnswer"
+                                                    : ""
+                                                }
+                                                key={index}
+                                                value={_alt.alternative}
+                                                disabled
+                                              />
+                                            </InputGroup>
+                                          </Form.Group>
+                                        </>
+                                      );
+                                    }
+                                  )}
+                                </Form.Group>
+                              )}
+                              {questionList[index].type !== 3 && (
+                                <>
+                                  <Form.Group>
+                                    <Form.Label>Resposta Aluno</Form.Label>
+                                    <Form.Control
+                                      className="fixed-textarea"
+                                      value={answer.answer}
+                                      as="textarea"
+                                      rows={3}
+                                      disabled={true}
+                                    />
+                                  </Form.Group>
+                                </>
+                              )}
+                            </Form>
+                          </Card.Body>
+                        </Accordion.Collapse>
+                      </Card>
+                    </div>
+                    <br></br>
+                  </>
+                ))}
+              </Accordion>
+            )}
             {graphs && (
               <Tabs defaultActiveKey="graficos" id="uncontrolled-tab-example">
                 <Tab eventKey="graficos" title="Gráficos">
@@ -460,6 +493,9 @@ function PosProva() {
                       </Card.Body>
                     </Card>
                   </Col>
+                </Tab>
+                <Tab eventKey="diario" title="Diário de Classe">
+                  <br></br>
                 </Tab>
               </Tabs>
             )}

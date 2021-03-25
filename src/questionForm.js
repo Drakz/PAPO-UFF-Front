@@ -58,7 +58,7 @@ function QuestionForm({
   const getTopics = useCallback(
     async (_id) => {
       const res = await fetch(
-        `http://localhost:4000/api/subject/${_id}/topics`
+        `https://2724b8b49587.ngrok.io/api/subject/${_id}/topics`
       );
       const topics = await res.json();
       setTopicsList(topics);
@@ -75,7 +75,7 @@ function QuestionForm({
 
   useEffect(() => {
     const getSubjects = async () => {
-      const res = await fetch(`http://localhost:4000/api/subjects`);
+      const res = await fetch(`https://2724b8b49587.ngrok.io/api/subjects`);
       const subjectsArray = await res.json();
       setSubjectsList(subjectsArray);
       if (subjectsArray[0]) {
@@ -116,16 +116,15 @@ function QuestionForm({
             <Col>
               <Form.Group>
                 <Form.Label>Assunto</Form.Label>
-                <Form.Control as="select" value={topic} disabled={readOnly}>
+                <Form.Control
+                  as="select"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  disabled={readOnly}
+                >
                   {topicsList.length > 0 ? (
                     topicsList.map((_topics, index) => (
-                      <option
-                        value={_topics.topic_id}
-                        key={index}
-                        onClick={() => {
-                          setTopic(_topics.topic_id);
-                        }}
-                      >
+                      <option value={_topics.topic_id} key={index}>
                         {_topics.topic}
                       </option>
                     ))
@@ -322,44 +321,62 @@ function QuestionForm({
               <p>Nenhum Input :(</p>
             )}
             <Row>
-              <Button
-                onClick={() =>
-                  setInOutList([
-                    ...inOutList,
-                    { input: "Novo Input", output: "Novo Output" },
-                  ])
-                }
-              >
-                Novo input e output
-              </Button>
               <Col>
-                <Form.Group>
-                  <Form.Label>Número de Compilações </Form.Label>
-                  <Form.Control
-                    rows={1}
-                    value={compilation}
-                    onChange={(v) => setCompilation(v.target.value)}
-                    type="number"
-                    placeholder="Número de Compilações"
-                  />
-                </Form.Group>
+                <Button
+                  onClick={() =>
+                    setInOutList([
+                      ...inOutList,
+                      { input: "Novo Input", output: "Novo Output" },
+                    ])
+                  }
+                >
+                  Novo input e output
+                </Button>
               </Col>
             </Row>
+            <br></br>
+            {deletable === true && (
+              <Row>
+                <Col>
+                  <Form.Group>
+                    <Form.Label>Número de Compilações </Form.Label>
+                    <Form.Control
+                      rows={1}
+                      value={compilation}
+                      onChange={(v) => setCompilation(v.target.value)}
+                      type="number"
+                      placeholder="Número de Compilações"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            )}
+
             <div className="dividerForm">
               <div className="buttonForm">
                 <Form.Row>
-                  <Col md={2}>
-                    <Form.Label>Valor da questão:</Form.Label>
-                  </Col>
-                  <Col md={{ span: 1, offset: 0 }}>
-                    <Form.Control
-                      value={value}
-                      onChange={(v) => setValue(v.target.value)}
-                      type="number"
-                      placeholder="0"
-                    />
-                  </Col>
-                  <Col md={{ span: 1, offset: 8 }}>
+                  {deletable === true && (
+                    <>
+                      <Col md={2}>
+                        <Form.Label>Valor da questão:</Form.Label>
+                      </Col>
+                      <Col md={{ span: 1, offset: 0 }}>
+                        <Form.Control
+                          value={value}
+                          onChange={(v) => setValue(v.target.value)}
+                          type="number"
+                          placeholder="0"
+                        />
+                      </Col>
+                    </>
+                  )}
+                  <Col
+                    md={
+                      deletable
+                        ? { span: 1, offset: 8 }
+                        : { span: 4, offset: 4 }
+                    }
+                  >
                     <Button
                       variant="success"
                       onClick={() => {
@@ -416,18 +433,28 @@ function QuestionForm({
             <div className="dividerForm">
               <div className="buttonForm">
                 <Form.Row>
-                  <Col md={2}>
-                    <Form.Label>Valor da questão:</Form.Label>
-                  </Col>
-                  <Col md={{ span: 1, offset: 0 }}>
-                    <Form.Control
-                      value={value}
-                      onChange={(v) => setValue(v.target.value)}
-                      type="number"
-                      placeholder="0"
-                    />
-                  </Col>
-                  <Col md={{ span: 1, offset: 8 }}>
+                  {deletable === true && (
+                    <>
+                      <Col md={2}>
+                        <Form.Label>Valor da questão:</Form.Label>
+                      </Col>
+                      <Col md={{ span: 1, offset: 0 }}>
+                        <Form.Control
+                          value={value}
+                          onChange={(v) => setValue(v.target.value)}
+                          type="number"
+                          placeholder="0"
+                        />
+                      </Col>
+                    </>
+                  )}
+                  <Col
+                    md={
+                      deletable
+                        ? { span: 1, offset: 8 }
+                        : { span: 4, offset: 4 }
+                    }
+                  >
                     <Button
                       variant="success"
                       onClick={() => {
@@ -513,11 +540,11 @@ function QuestionForm({
                   );
                 })}
             {multipleChoiceAnswer.length > 0 &&
-              multipleChoiceAnswer.map((choice, index) => {
-                if (choice.checked === true && index === 0) {
+              multipleChoiceAnswer.map((choice) => {
+                if (choice.checked === true) {
                   return "Resposta Correta: " + choice.description + " ; ";
                 } else {
-                  return choice.description + " ; ";
+                  return "";
                 }
               })}
           </p>

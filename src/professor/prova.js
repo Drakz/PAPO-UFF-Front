@@ -15,6 +15,8 @@ import {
 import QuestionForm from "../questionForm";
 import QuestionContext from "./QuestionContext";
 
+import { useHistory } from "react-router-dom";
+
 function ComponenteDoRafael({
   question: {
     title,
@@ -230,11 +232,21 @@ function QuestionList({
   );
 }
 
-function ProfessorPerfil() {
+function ProvaProfessor() {
+  const history = useHistory();
   //estados modal banco de questões
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const [showTestName, setShowTestName] = useState(false);
+  const handleCloseTestName = () => setShowTestName(false);
+  const handleShowTestName = () => setShowTestName(true);
+  const [showSize, setShowSize] = useState(false);
+  const handleCloseSize = () => setShowSize(false);
+  const handleShowSize = () => setShowSize(true);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const handleCloseSuccess = () => setShowSuccess(false);
+  const handleShowSuccess = () => setShowSuccess(true);
   //estados usados no componente
   const [testName, setTestName] = useState("");
   const [questionList, setQuestionList] = useState([]);
@@ -242,7 +254,7 @@ function ProfessorPerfil() {
   //função para a criação de uma prova
   const newTest = useCallback(async () => {
     console.log("como pode?");
-    const res = await fetch(`http://localhost:4000/api/newTest`, {
+    const res = await fetch(`https://2724b8b49587.ngrok.io/api/newTest`, {
       method: "POST",
       body: JSON.stringify({
         testName,
@@ -250,8 +262,10 @@ function ProfessorPerfil() {
       headers: { "Content-Type": "application/json" },
     });
     const exam = await res.json();
+    setIdTest(exam[0].test_id);
+    handleShowSuccess();
     questionList.map(async (question, index) => {
-      const res = await fetch(`http://localhost:4000/api/addQuestion`, {
+      const res = await fetch(`https://2724b8b49587.ngrok.io/api/addQuestion`, {
         method: "POST",
         body: JSON.stringify({
           description: question.description,
@@ -266,7 +280,7 @@ function ProfessorPerfil() {
         headers: { "Content-Type": "application/json" },
       });
       const examQuestion = await res.json();
-      fetch(`http://localhost:4000/api/newTestRel`, {
+      fetch(`https://2724b8b49587.ngrok.io/api/newTestRel`, {
         method: "POST",
         body: JSON.stringify({
           testId: exam[0].test_id,
@@ -293,12 +307,12 @@ function ProfessorPerfil() {
         answer: "",
         type: 1,
         difficulty: 1,
-        value: 0,
+        value: 10,
         subject: 0,
         topic: 4,
         multipleChoiceAnswer: [],
         inOutList: [],
-        compilation: 0,
+        compilation: 5,
       },
     ]);
   }, [questionList]);
@@ -322,24 +336,25 @@ function ProfessorPerfil() {
           description,
           type,
           difficulty,
-          value: 0,
+          value: 10,
           subject,
           topic,
           inOutList,
           multipleChoiceAnswer,
           answer,
-          compilation: 0,
+          compilation: 5,
         },
       ]);
       handleClose();
     },
     [questionList]
   );
+  const [idTest, setIdTest] = useState("");
   //função de retorno
   return (
     <div className="questionBackground">
-      <Professor />
-      <Row className="justify-content-md-center">
+      <Professor id={history.location.state.prof_id} />
+      <Row style={{ marginTop: "6vh" }} className="justify-content-md-center">
         <Col md={{ span: 8, offset: 2 }}>
           <br></br>
           <Card>
@@ -349,9 +364,9 @@ function ProfessorPerfil() {
                 <FormControl
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
+                  placeholder="Ex.: P1 Programação 1 - 2021.1"
                 />
               </InputGroup>
-              <p className="textTestValue">Total de pontos: {testValue}</p>
             </Card.Body>
           </Card>
           <br></br>
@@ -375,7 +390,19 @@ function ProfessorPerfil() {
           </Row>
           <br></br>
           <Row>
-            <Button onClick={() => newTest()}>Finalizar Prova</Button>
+            <Button
+              onClick={() => {
+                if (testName === "") {
+                  handleShowTestName();
+                } else if (questionList.length === 0) {
+                  handleShowSize();
+                } else {
+                  newTest();
+                }
+              }}
+            >
+              Finalizar Prova
+            </Button>
           </Row>
         </Col>
       </Row>
@@ -384,6 +411,9 @@ function ProfessorPerfil() {
         onHide={() => setShow(false)}
         dialogClassName="modalDatabase"
       >
+        <Modal.Header closeButton>
+          <Modal.Title>Banco de Questões</Modal.Title>
+        </Modal.Header>
         <Modal.Body>
           <Banco
             size={"md"}
@@ -395,8 +425,41 @@ function ProfessorPerfil() {
           ></Banco>
         </Modal.Body>
       </Modal>
+      <Modal show={showTestName} onHide={handleCloseTestName}>
+        <Modal.Header closeButton>
+          <Modal.Title>Erro ao criar prova</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Você precisa adicionar um nome a sua prova.</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseTestName}>
+            Ok
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showSize} onHide={handleCloseSize}>
+        <Modal.Header closeButton>
+          <Modal.Title>Erro ao criar prova</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Você não pode criar um prova sem questões.</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseSize}>
+            Ok
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showSuccess} onHide={handleCloseSuccess}>
+        <Modal.Header closeButton>
+          <Modal.Title>Prova Criada Com Sucesso!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Cdigo da prova: {idTest}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseSuccess}>
+            Ok
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
 
-export default ProfessorPerfil;
+export default ProvaProfessor;

@@ -4,6 +4,8 @@ import Professor from "./professor";
 import "../App.css";
 import QuestionContext from "./QuestionContext";
 
+import { useHistory } from "react-router-dom";
+
 import {
   Row,
   Col,
@@ -22,6 +24,7 @@ function Banco({
   exportable = false,
   exportFunction,
 }) {
+  const history = useHistory();
   const [subjects, setSubjects] = useState([]);
   const [subject, setSubject] = useState({ subject: "Carregando..." });
   const [topics, setTopics] = useState([]);
@@ -113,7 +116,9 @@ function Banco({
 
   //search question in database
   const getQuestion = useCallback(async (_id) => {
-    const res = await fetch(`http://localhost:4000/api/questions/${_id}`);
+    const res = await fetch(
+      `https://2724b8b49587.ngrok.io/api/questions/${_id}`
+    );
     const question = await res.json();
     setCurrentQuestion(question[0]);
   }, []);
@@ -121,7 +126,7 @@ function Banco({
   const getAnswer = useCallback(
     async (_id, type) => {
       const res = await fetch(
-        `http://localhost:4000/api/questions/answer/${_id}/${type}`
+        `https://2724b8b49587.ngrok.io/api/questions/answer/${_id}/${type}`
       );
       const answer = await res.json();
       if (type === 1) {
@@ -129,6 +134,7 @@ function Banco({
       } else if (type === 2) {
         setInOutList(answer);
       } else if (type === 3) {
+        console.log(answer);
         var aux = [...multipleChoiceAnswer];
         var corrects = [];
         answer.correct.forEach((correct) => {
@@ -147,6 +153,8 @@ function Banco({
             ];
           }
         });
+        console.log(corrects);
+        console.log(aux);
         setMultipleChoiceAnswer(aux);
       }
     },
@@ -160,7 +168,9 @@ function Banco({
   }, [setAnswer, setInOutList, setMultipleChoiceAnswer]);
   //search questions in database based on a topic id
   const getQuestions = useCallback(async (_id) => {
-    const res = await fetch(`http://localhost:4000/api/topic/${_id}/questions`);
+    const res = await fetch(
+      `https://2724b8b49587.ngrok.io/api/topic/${_id}/questions`
+    );
     const questions = await res.json();
     setQuestionList(questions);
   }, []);
@@ -168,7 +178,7 @@ function Banco({
   const getTopics = useCallback(
     async (_id) => {
       const res = await fetch(
-        `http://localhost:4000/api/subject/${_id}/topics`
+        `https://2724b8b49587.ngrok.io/api/subject/${_id}/topics`
       );
       const topics = await res.json();
       setTopics(topics);
@@ -183,7 +193,7 @@ function Banco({
   );
   //insert a new topic in database
   const newTopic = useCallback(async (_id, _newTopic) => {
-    await fetch(`http://localhost:4000/api/subject/newTopic`, {
+    await fetch(`https://2724b8b49587.ngrok.io/api/subject/newTopic`, {
       method: "POST",
       body: JSON.stringify({
         id: _id,
@@ -194,7 +204,7 @@ function Banco({
   }, []);
   //insert a new question in database
   const newQuestion = useCallback(async () => {
-    const res = await fetch(`http://localhost:4000/api/addQuestion`, {
+    const res = await fetch(`https://2724b8b49587.ngrok.io/api/addQuestion`, {
       method: "POST",
       body: JSON.stringify({
         description: currentModalQuestion.description,
@@ -229,7 +239,7 @@ function Banco({
 
   useEffect(() => {
     const myFunction = async () => {
-      const res = await fetch(`http://localhost:4000/api/subjects`);
+      const res = await fetch(`https://2724b8b49587.ngrok.io/api/subjects`);
       const subjectsArray = await res.json();
       setSubjects(subjectsArray);
       if (subjectsArray[0]) {
@@ -243,7 +253,7 @@ function Banco({
   }, [getTopics]);
   return (
     <>
-      {modal === false && <Professor />}
+      {modal === false && <Professor id={history.location.state.prof_id} />}
       <div className={size === "md" ? "divPageModal" : "divPage"}>
         <Row>
           <Col
@@ -323,10 +333,12 @@ function Banco({
                     }
                     action
                     onClick={() => {
-                      setCurrentIndex(_question.question_id);
-                      getQuestion(_question.question_id);
-                      clearAnswer();
-                      getAnswer(_question.question_id, _question.type);
+                      if (currentIndex !== _question.question_id) {
+                        setCurrentIndex(_question.question_id);
+                        getQuestion(_question.question_id);
+                        clearAnswer();
+                        getAnswer(_question.question_id, _question.type);
+                      }
                     }}
                   >
                     {_question.title}
@@ -359,19 +371,27 @@ function Banco({
                 Importar
               </Button>
             ) : (
-              <Button
-                block
-                variant="success"
-                onClick={() => {
-                  handleShowNewQuestion();
-                  clearModal();
-                }}
-              >
-                Adicionar Questão Nova
-              </Button>
+              <>
+                <br></br>
+                <Button
+                  block
+                  variant="success"
+                  onClick={() => {
+                    handleShowNewQuestion();
+                    clearModal();
+                  }}
+                >
+                  Adicionar Questão Nova
+                </Button>
+              </>
             )}
           </Col>
-          <Col className="centerProfessor" md="10">
+          <Col
+            className={
+              size === "md" ? "centerProfessorBanco" : "centerProfessorProva"
+            }
+            md="10"
+          >
             <QuestionContext.Provider
               value={{
                 title: currentQuestion.title,
@@ -456,6 +476,8 @@ function Banco({
           show={modalNewQuestion}
           onHide={handleCloseNewQuestion}
           dialogClassName="modalDatabase"
+          backdrop="static"
+          keyboard={false}
         >
           <Modal.Header closeButton>
             <Modal.Title>Adicionar Questão no Banco</Modal.Title>
