@@ -12,6 +12,9 @@ import {
 } from "react-bootstrap";
 import { useHistory } from "react-router-dom";
 import Timer from "react-compound-timer";
+import CodeMirror from "@uiw/react-codemirror";
+import "codemirror/keymap/sublime";
+import "codemirror/theme/monokai.css";
 
 function ProvaAluno() {
   const history = useHistory();
@@ -103,22 +106,47 @@ function ProvaAluno() {
   }, [input, currentIndex, questionList, history.location.state.student_id]);
 
   const endTest = useCallback(async () => {
-    questionList.map(async (question, index) => {
-      question.time = questionList[index].getTime();
-      await fetch(`https://2724b8b49587.ngrok.io/api/newStudentQuestion`, {
-        method: "POST",
-        body: JSON.stringify({
-          answer: question.answer,
-          time: question.time,
-          type: question.type,
-          comp: question.compilations,
-          testId: history.location.state.test_id,
-          studentId: history.location.state.student_id,
-          questionId: question.question_id,
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-    });
+    questionList[currentIndex].stop();
+    setEnunciado(questionList[0].description);
+    if (questionList[currentIndex].type === 2) {
+      const newQuestionList = [...questionList];
+      newQuestionList[currentIndex].answer = resp;
+      setQuestionList(newQuestionList);
+    }
+    setResp(questionList[0].answer);
+    setInput(questionList[0].input);
+    setOutput(questionList[0].output);
+    setCompilationAmount(questionList[0].compilations);
+    await Promise.all(
+      questionList.map(async (question, index) => {
+        question.time = questionList[index].getTime();
+        await fetch(`https://2724b8b49587.ngrok.io/api/newStudentQuestion`, {
+          method: "POST",
+          body: JSON.stringify({
+            answer: question.answer,
+            time: question.time,
+            type: question.type,
+            comp: question.type === 2 ? question.compilations : 0,
+            testId: history.location.state.test_id,
+            studentId: history.location.state.student_id,
+            questionId: question.question_id,
+            totalValue: question.value,
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
+        if (question.type === 2) {
+          await fetch(`https://2724b8b49587.ngrok.io/api/compile`, {
+            method: "POST",
+            body: JSON.stringify({
+              id: question.question_id,
+              student_id: history.location.state.student_id,
+              resp: question.answer,
+            }),
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      })
+    );
     history.push({
       pathname: "/login",
       state: {
@@ -126,7 +154,7 @@ function ProvaAluno() {
         studentId: history.location.state.student_id,
       },
     });
-  }, [history, questionList]);
+  }, [history, questionList, currentIndex, resp]);
 
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -150,8 +178,7 @@ function ProvaAluno() {
                     <>
                       <ListGroup.Item variant="info">
                         <p>Tempo de Prova Restante:</p>
-                        <Timer.Hours /> horas
-                        <Timer.Minutes /> minutos
+                        <Timer.Hours /> horas <Timer.Minutes /> minutos{" "}
                         <Timer.Seconds /> segundos
                       </ListGroup.Item>
                     </>
@@ -177,15 +204,6 @@ function ProvaAluno() {
                             action
                             onClick={() => {
                               if (currentIndex !== index) {
-                                setEnunciado(questionList[index].description);
-                                setResp(questionList[index].answer);
-                                setInput(questionList[index].input);
-                                setOutput(questionList[index].output);
-                                setCompilationAmount(
-                                  questionList[index].compilations
-                                );
-                                console.log(questionList);
-                                setCurrentIndex(index);
                                 questionList[currentIndex].stop();
                                 const newArray = [...questionList];
                                 newArray[currentIndex].time = questionList[
@@ -193,6 +211,20 @@ function ProvaAluno() {
                                 ].getTime();
                                 setQuestionList(newArray);
                                 questionList[index].start();
+                                setEnunciado(questionList[index].description);
+                                if (questionList[currentIndex].type === 2) {
+                                  const newQuestionList = [...questionList];
+                                  newQuestionList[currentIndex].answer = resp;
+                                  setQuestionList(newQuestionList);
+                                }
+                                setResp(questionList[index].answer);
+                                setInput(questionList[index].input);
+                                setOutput(questionList[index].output);
+                                setCompilationAmount(
+                                  questionList[index].compilations
+                                );
+                                setCurrentIndex(index);
+                                console.log(questionList);
                               }
                             }}
                           >
@@ -207,7 +239,14 @@ function ProvaAluno() {
                 <ListGroup.Item>Carregando...</ListGroup.Item>
               )}
             </ListGroup>
-            <Button block="true" variant="info" onClick={handleShow}>
+            <Button
+              block="true"
+              variant="info"
+              onClick={() => {
+                handleShow();
+                questionList[currentIndex].stop();
+              }}
+            >
               Finalizar Prova
             </Button>
           </Col>
@@ -251,19 +290,23 @@ function ProvaAluno() {
                 <Form.Group>
                   <Form.Label>Código</Form.Label>
                   <div className="codeEditor">
-                    <Form.Control
-                      className="fixed-textarea"
+                    <CodeMirror
                       onChange={(r) => {
-                        setResp(r.target.value);
-                        const newQuestionList = [...questionList];
-                        newQuestionList[currentIndex].answer = r.target.value;
-                        setQuestionList(newQuestionList);
+                        setResp(r.getValue());
                       }}
-                      rows={10}
-                      type="text"
-                      as="textarea"
-                      value={resp}
-                      placeholder="Código da questão"
+                      height={300}
+                      width={1487}
+                      value={
+                        resp === ""
+                          ? `//-------------------------INSTRUÇÕES-------------------------\n//ATENTE-SE PARA QUE A FUNÇÃO PRINCIPAL DO SEU CÓDIGO TENHA RETORNO,\n//OU SEJA, SUA FUNÇÃO MAIN DEVE SER DO TIPO INTEIRO.\n//EX.:\n//...\n//int main(){\n//...\n//return 0;\n//}\n\n//-------------------------BOA PROVA!-------------------------`
+                          : resp
+                      }
+                      options={{
+                        theme: "monokai",
+                        tabSize: 2,
+                        keyMap: "sublime",
+                        mode: "c",
+                      }}
                     />
                   </div>
                   <Row>
@@ -306,7 +349,9 @@ function ProvaAluno() {
                         onClick={() => {
                           compile();
                           questionList[currentIndex].compilations =
-                            questionList[currentIndex].compilations - 1;
+                            compilationAmount - 1 > 0
+                              ? compilationAmount - 1
+                              : 0;
                           setCompilationAmount(
                             compilationAmount - 1 > 0
                               ? compilationAmount - 1
@@ -367,7 +412,13 @@ function ProvaAluno() {
                 Você está prestes a entregar a prova. Tem certeza disso?
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    handleClose();
+                    questionList[currentIndex].start();
+                  }}
+                >
                   Voltar
                 </Button>
                 <Button variant="primary" onClick={endTest}>
