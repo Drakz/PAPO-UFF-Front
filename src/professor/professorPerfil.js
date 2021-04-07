@@ -47,7 +47,7 @@ function ProfessorPerfil() {
               src="https://cdn2.iconfinder.com/data/icons/facebook-51/32/FACEBOOK_LINE-01-512.png"
               rounded
             />
-            <h3>Bazílio</h3>
+            <h3>Professor</h3>
           </Col>
           <Col className="centerProfessor" md="10">
             {testList.map((test) => {

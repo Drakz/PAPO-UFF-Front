@@ -14,6 +14,7 @@ import {
   Accordion,
   Modal,
   Button,
+  Table,
 } from "react-bootstrap";
 import Chart from "react-apexcharts";
 import { useHistory } from "react-router-dom";
@@ -31,8 +32,15 @@ function PosProva() {
   const [compList, setCompList] = useState([]);
   const [rightList, setRightList] = useState([]);
   const [wrongList, setWrongList] = useState([]);
+  const [valueList, setValueList] = useState([]);
   const [show, setShow] = useState(true);
   const handleClose = () => setShow(false);
+  const [showData, setShowData] = useState(false);
+  const handleCloseData = () => setShowData(false);
+  const handleShowData = () => setShowData(true);
+  const [showError, setShowError] = useState(false);
+  const handleCloseError = () => setShowError(false);
+  const handleShowError = () => setShowError(true);
   //função de retorno
 
   const tempo = {
@@ -72,7 +80,7 @@ function PosProva() {
       },
     ],
   };
-  /*  const acerto = {
+  const listacertoerrado = {
     colors: ["#b84644", "#4576b5"],
     options: {
       chart: {
@@ -85,14 +93,14 @@ function PosProva() {
     series: [
       {
         name: "Acertos",
-        data: [3, 5, 4, 1, 5],
+        data: rightList,
       },
       {
         name: "Erros",
-        data: [3, 1, 2, 5, 1],
+        data: wrongList,
       },
     ],
-  };*/
+  };
 
   useEffect(() => {
     const myFunction = async () => {
@@ -128,192 +136,302 @@ function PosProva() {
         }
       );
       const students = await query.json();
-      const stringStudents = students.map((student) => {
-        return student.student_id;
+      if (students !== []) {
+        const stringStudents = students.map((student) => {
+          return student.student_id;
+        });
+        const queryStudent = await fetch(
+          `https://2724b8b49587.ngrok.io/api/students`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              student_ids: stringStudents.toString(),
+            }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        const studentList = await queryStudent.json();
+        setStudentList(studentList);
+        const queryStudentAnswer = await fetch(
+          `https://2724b8b49587.ngrok.io/api/students_answer`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              student_ids: stringStudents.toString(),
+              test_id: history.location.state.test_id,
+            }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        const studentAnswers = await queryStudentAnswer.json();
+        await Promise.all(
+          studentAnswers.map(async (question) => {
+            question.inputs = 0;
+            question.erro = "";
+            const gabaritoQuestion = questionListRes.find(
+              (element) => element.question_id === question.question_id
+            );
+            if (question.checked === 0) {
+              if (question.type === 1) {
+                if (gabaritoQuestion.answer[0].answer === question.answer) {
+                  await fetch(
+                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify({
+                        newValue: question.total_value,
+                        question_id: question.student_question_id,
+                        feedback: "Questão Correta.",
+                      }),
+                      headers: { "Content-Type": "application/json" },
+                    }
+                  );
+                } else {
+                  await fetch(
+                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify({
+                        newValue: 0,
+                        question_id: question.student_question_id,
+                        feedback: "Questão Errada.",
+                      }),
+                      headers: { "Content-Type": "application/json" },
+                    }
+                  );
+                }
+              } else if (question.type === 2) {
+                Promise.all(
+                  gabaritoQuestion.answer.map(
+                    async (input_output, indexQuestion) => {
+                      const res = await fetch(
+                        `https://2724b8b49587.ngrok.io/api/execute`,
+                        {
+                          method: "POST",
+                          body: JSON.stringify({
+                            id: question.question_id,
+                            input: input_output.input,
+                            student_id: question.student_id,
+                            index: indexQuestion,
+                          }),
+                          headers: { "Content-Type": "application/json" },
+                        }
+                      );
+                      const outputExecuted = await res.json();
+                      if (outputExecuted.output === input_output.output) {
+                        question.inputs = question.inputs + 1;
+                      } else {
+                        question.erro =
+                          question.erro +
+                          "< Input: " +
+                          input_output.input.toString() +
+                          " Output Esperado: " +
+                          input_output.output.toString() +
+                          " Output Recebido: " +
+                          outputExecuted.output +
+                          " >";
+                      }
+                      if (
+                        indexQuestion ===
+                        gabaritoQuestion.answer.length - 1
+                      ) {
+                        if (
+                          question.inputs === gabaritoQuestion.answer.length
+                        ) {
+                          await fetch(
+                            `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                            {
+                              method: "POST",
+                              body: JSON.stringify({
+                                newValue: question.total_value,
+                                question_id: question.student_question_id,
+                                feedback: "Questão Correta.",
+                              }),
+                              headers: { "Content-Type": "application/json" },
+                            }
+                          );
+                        } else if (question.inputs === 0) {
+                          await fetch(
+                            `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                            {
+                              method: "POST",
+                              body: JSON.stringify({
+                                newValue: 0,
+                                question_id: question.student_question_id,
+                                feedback:
+                                  "Questão Errada. Todos os pares input-output deram errado. ",
+                              }),
+                              headers: { "Content-Type": "application/json" },
+                            }
+                          );
+                        } else {
+                          await fetch(
+                            `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                            {
+                              method: "POST",
+                              body: JSON.stringify({
+                                newValue: Math.floor(
+                                  question.total_value *
+                                    (question.inputs /
+                                      gabaritoQuestion.answer.length)
+                                ),
+                                question_id: question.student_question_id,
+                                feedback:
+                                  "Questão " +
+                                  (
+                                    (question.inputs /
+                                      gabaritoQuestion.answer.length) *
+                                    100
+                                  ).toFixed(2) +
+                                  "% correta. Erros: " +
+                                  question.erro,
+                              }),
+                              headers: { "Content-Type": "application/json" },
+                            }
+                          );
+                        }
+                      }
+                    }
+                  )
+                );
+              } else if (question.type === 3) {
+                if (
+                  parseInt(gabaritoQuestion.answer[0].answer) ===
+                  parseInt(question.answer)
+                ) {
+                  await fetch(
+                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify({
+                        newValue: question.total_value,
+                        question_id: question.student_question_id,
+                        feedback: "Questão correta",
+                      }),
+                      headers: { "Content-Type": "application/json" },
+                    }
+                  );
+                } else {
+                  await fetch(
+                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify({
+                        newValue: 0,
+                        question_id: question.student_question_id,
+                        feedback: "Questão Errada.",
+                      }),
+                      headers: { "Content-Type": "application/json" },
+                    }
+                  );
+                }
+              }
+            }
+          })
+        );
+        const queryStudentAnswerFinal = await fetch(
+          `https://2724b8b49587.ngrok.io/api/students_answer`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              student_ids: stringStudents.toString(),
+              test_id: history.location.state.test_id,
+            }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        const studentAnswersFinal = await queryStudentAnswerFinal.json();
+        setTimeList(
+          questionListRes.map((question) => {
+            const aux = studentAnswersFinal.filter(
+              (element) => element.question_id === question.question_id
+            );
+            const times = aux.map((q) => q.time);
+            return (
+              times.reduce((total, num) => total + num) /
+              aux.length /
+              60000
+            ).toFixed(2);
+          })
+        );
+        setCompList(
+          questionListRes.map((question) => {
+            if (question.type === 2) {
+              const aux = studentAnswersFinal.filter(
+                (element) => element.question_id === question.question_id
+              );
+              const times = aux.map((q) => question.compilations - q.comp);
+              return times.reduce((total, num) => total + num) / aux.length;
+            } else {
+              return null;
+            }
+          })
+        );
+        setWrongList(
+          questionListRes.map((question) => {
+            const aux = studentAnswersFinal.filter(
+              (element) => element.question_id === question.question_id
+            );
+            const times = aux.map((q) => (q.value === 0 ? 1 : 0));
+            return times.reduce((total, num) => total + num);
+          })
+        );
+        setRightList(
+          questionListRes.map((question) => {
+            const aux = studentAnswersFinal.filter(
+              (element) => element.question_id === question.question_id
+            );
+            const times = aux.map((q) => (q.value > 0 ? 1 : 0));
+            return times.reduce((total, num) => total + num);
+          })
+        );
+        setAnswerList(studentAnswersFinal);
+        handleClose();
+      } else {
+        handleClose();
+        handleShowError();
+      }
+    };
+    myFunction();
+  }, [history.location.state.test_id]);
+
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
+  const voltarInicio = useCallback(() => {
+    history.push({
+      pathname: "/professor/perfil",
+      state: {
+        id: history.location.state.prof_id.id,
+      },
+    });
+  }, [history]);
+
+  const setQuestionValue = useCallback(
+    async (id, newValue) => {
+      handleShowData();
+      await fetch(`https://2724b8b49587.ngrok.io/api/updateQuestionScore`, {
+        method: "POST",
+        body: JSON.stringify({
+          newValue: newValue,
+          question_id: id,
+          feedback: "Nota alterada pelo professor.",
+        }),
+        headers: { "Content-Type": "application/json" },
       });
-      const queryStudent = await fetch(
-        `https://2724b8b49587.ngrok.io/api/students`,
+      const query = await fetch(
+        `https://2724b8b49587.ngrok.io/api/test_students`,
         {
           method: "POST",
           body: JSON.stringify({
-            student_ids: stringStudents.toString(),
-          }),
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      const studentList = await queryStudent.json();
-      setStudentList(studentList);
-      const queryStudentAnswer = await fetch(
-        `https://2724b8b49587.ngrok.io/api/students_answer`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            student_ids: stringStudents.toString(),
             test_id: history.location.state.test_id,
           }),
           headers: { "Content-Type": "application/json" },
         }
       );
-      const studentAnswers = await queryStudentAnswer.json();
-      await Promise.all(
-        studentAnswers.map(async (question) => {
-          question.inputs = 0;
-          question.erro = "";
-          const gabaritoQuestion = questionListRes.find(
-            (element) => element.question_id === question.question_id
-          );
-          if (question.checked === 0) {
-            if (question.type === 1) {
-              if (gabaritoQuestion.answer[0].answer === question.answer) {
-                await fetch(
-                  `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                  {
-                    method: "POST",
-                    body: JSON.stringify({
-                      newValue: question.total_value,
-                      question_id: question.student_question_id,
-                      feedback: "Questão Correta.",
-                    }),
-                    headers: { "Content-Type": "application/json" },
-                  }
-                );
-              } else {
-                await fetch(
-                  `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                  {
-                    method: "POST",
-                    body: JSON.stringify({
-                      newValue: 0,
-                      question_id: question.student_question_id,
-                      feedback: "Questão Errada.",
-                    }),
-                    headers: { "Content-Type": "application/json" },
-                  }
-                );
-              }
-            } else if (question.type === 2) {
-              Promise.all(
-                gabaritoQuestion.answer.map(
-                  async (input_output, indexQuestion) => {
-                    const res = await fetch(
-                      `https://2724b8b49587.ngrok.io/api/execute`,
-                      {
-                        method: "POST",
-                        body: JSON.stringify({
-                          id: question.question_id,
-                          input: input_output.input,
-                          student_id: question.student_id,
-                          index: indexQuestion,
-                        }),
-                        headers: { "Content-Type": "application/json" },
-                      }
-                    );
-                    const outputExecuted = await res.json();
-                    if (outputExecuted.output === input_output.output) {
-                      question.inputs = question.inputs + 1;
-                    } else {
-                      question.erro =
-                        question.erro +
-                        "< Input: " +
-                        input_output.input.toString() +
-                        " Output Esperado: " +
-                        input_output.output.toString() +
-                        " Output Recebido: " +
-                        outputExecuted.output +
-                        " >";
-                    }
-                    if (indexQuestion === gabaritoQuestion.answer.length - 1) {
-                      if (question.inputs === gabaritoQuestion.answer.length) {
-                        await fetch(
-                          `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                          {
-                            method: "POST",
-                            body: JSON.stringify({
-                              newValue: question.total_value,
-                              question_id: question.student_question_id,
-                              feedback: "Questão Correta.",
-                            }),
-                            headers: { "Content-Type": "application/json" },
-                          }
-                        );
-                      } else if (question.inputs === 0) {
-                        await fetch(
-                          `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                          {
-                            method: "POST",
-                            body: JSON.stringify({
-                              newValue: 0,
-                              question_id: question.student_question_id,
-                              feedback: "Questão Errada.",
-                            }),
-                            headers: { "Content-Type": "application/json" },
-                          }
-                        );
-                      } else {
-                        await fetch(
-                          `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                          {
-                            method: "POST",
-                            body: JSON.stringify({
-                              newValue: Math.floor(
-                                question.total_value *
-                                  (question.inputs /
-                                    gabaritoQuestion.answer.length)
-                              ),
-                              question_id: question.student_question_id,
-                              feedback:
-                                "Questão " +
-                                (
-                                  (question.inputs /
-                                    gabaritoQuestion.answer.length) *
-                                  100
-                                ).toFixed(2) +
-                                "% correta. Erros: " +
-                                question.erro,
-                            }),
-                            headers: { "Content-Type": "application/json" },
-                          }
-                        );
-                      }
-                    }
-                  }
-                )
-              );
-            } else if (question.type === 3) {
-              if (
-                parseInt(gabaritoQuestion.answer[0].answer) ===
-                parseInt(question.answer)
-              ) {
-                await fetch(
-                  `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                  {
-                    method: "POST",
-                    body: JSON.stringify({
-                      newValue: question.total_value,
-                      question_id: question.student_question_id,
-                      feedback: "Questão correta",
-                    }),
-                    headers: { "Content-Type": "application/json" },
-                  }
-                );
-              } else {
-                await fetch(
-                  `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
-                  {
-                    method: "POST",
-                    body: JSON.stringify({
-                      newValue: 0,
-                      question_id: question.student_question_id,
-                      feedback: "Questão errada",
-                    }),
-                    headers: { "Content-Type": "application/json" },
-                  }
-                );
-              }
-            }
-          }
-        })
-      );
+      const students = await query.json();
+      const stringStudents = students.map((student) => {
+        return student.student_id;
+      });
       const queryStudentAnswerFinal = await fetch(
         `https://2724b8b49587.ngrok.io/api/students_answer`,
         {
@@ -326,8 +444,9 @@ function PosProva() {
         }
       );
       const studentAnswersFinal = await queryStudentAnswerFinal.json();
+      setAnswerList(studentAnswersFinal);
       setTimeList(
-        questionListRes.map((question) => {
+        questionList.map((question) => {
           const aux = studentAnswersFinal.filter(
             (element) => element.question_id === question.question_id
           );
@@ -340,7 +459,7 @@ function PosProva() {
         })
       );
       setCompList(
-        questionListRes.map((question) => {
+        questionList.map((question) => {
           if (question.type === 2) {
             const aux = studentAnswersFinal.filter(
               (element) => element.question_id === question.question_id
@@ -352,29 +471,28 @@ function PosProva() {
           }
         })
       );
-
-      setAnswerList(studentAnswersFinal);
-      handleClose();
-    };
-    //[percorrer a lista para pegar os tempos
-    //percorrer a lista para pegar as compilações
-    //percorrer a lista para pegar questão certa(?)]
-    myFunction();
-  }, [history.location.state.test_id]);
-
-  const [currentIndex, setCurrentIndex] = useState(-1);
-
-  const setQuestionValue = useCallback(async (id, newValue) => {
-    await fetch(`https://2724b8b49587.ngrok.io/api/updateQuestionScore`, {
-      method: "POST",
-      body: JSON.stringify({
-        newValue: newValue,
-        question_id: id,
-        feedback: "Nota alterada pelo professor.",
-      }),
-      headers: { "Content-Type": "application/json" },
-    });
-  }, []);
+      setWrongList(
+        questionList.map((question) => {
+          const aux = studentAnswersFinal.filter(
+            (element) => element.question_id === question.question_id
+          );
+          const times = aux.map((q) => (q.value === 0 ? 1 : 0));
+          return times.reduce((total, num) => total + num);
+        })
+      );
+      setRightList(
+        questionList.map((question) => {
+          const aux = studentAnswersFinal.filter(
+            (element) => element.question_id === question.question_id
+          );
+          const times = aux.map((q) => (q.value > 0 ? 1 : 0));
+          return times.reduce((total, num) => total + num);
+        })
+      );
+      handleCloseData();
+    },
+    [history.location.state.test_id, questionList]
+  );
 
   return (
     <>
@@ -385,6 +503,7 @@ function PosProva() {
             <ListGroup className="questionScroll" variant="flush">
               <ListGroup.Item
                 onClick={() => {
+                  setCurrentIndex(-1);
                   setGraphs(true);
                   setQuestionsDisplay(false);
                 }}
@@ -405,6 +524,16 @@ function PosProva() {
                       setCurrentStudent(
                         answerList.filter(
                           (element) => element.student_id === student.student_id
+                        )
+                      );
+                      setValueList(
+                        questionList.map(
+                          (question) =>
+                            answerList.find(
+                              (answer) =>
+                                answer.question_id === question.question_id &&
+                                answer.student_id === student.student_id
+                            ).value
                         )
                       );
                       setCurrentIndex(index);
@@ -625,24 +754,16 @@ function PosProva() {
                                 </Col>
                                 <Col md={{ span: 1, offset: 0 }}>
                                   <Form.Control
-                                    value={parseInt(
-                                      currentStudent.filter(
-                                        (element) =>
-                                          element.question_id ===
-                                          question.question_id
-                                      )[0].value
-                                    )}
-                                    onChange={(v) =>
-                                      (currentStudent.filter(
-                                        (element) =>
-                                          element.question_id ===
-                                          question.question_id
-                                      )[0].value = v.target.value)
-                                    }
+                                    value={valueList[index]}
+                                    onChange={(v) => {
+                                      const newArray = [...valueList];
+                                      newArray[index] = v.target.value;
+                                      setValueList(newArray);
+                                    }}
                                     type="number"
                                   />
                                 </Col>
-                                <Col>
+                                <Col md={{ span: 1, offset: 8 }}>
                                   <Button
                                     variant="success"
                                     onClick={() => {
@@ -654,13 +775,7 @@ function PosProva() {
                                               question.question_id
                                           )[0].student_question_id
                                         ),
-                                        parseInt(
-                                          currentStudent.filter(
-                                            (element) =>
-                                              element.question_id ===
-                                              question.question_id
-                                          )[0].value
-                                        )
+                                        valueList[index]
                                       );
                                     }}
                                   >
@@ -682,10 +797,24 @@ function PosProva() {
               <Tabs defaultActiveKey="graficos" id="uncontrolled-tab-example">
                 <Tab eventKey="graficos" title="Gráficos">
                   <br></br>
+                  <Card>
+                    <Card.Header>
+                      Número de Acertos e Erros por questão
+                    </Card.Header>
+                    <Card.Body>
+                      <Chart
+                        options={listacertoerrado.options}
+                        series={listacertoerrado.series}
+                        type="bar"
+                        height="300"
+                      />
+                    </Card.Body>
+                  </Card>
+                  <br></br>
                   <Col>
                     <Card>
                       <Card.Header>
-                        Média de tempo por questão (minuto)
+                        Média de tempo (em minutos) por questão
                       </Card.Header>
                       <Card.Body>
                         <Chart
@@ -710,6 +839,7 @@ function PosProva() {
                         />
                       </Card.Body>
                     </Card>
+                    <br></br>
                   </Col>
                 </Tab>
                 <Tab eventKey="questoes" title="Questões em Destaque">
@@ -724,7 +854,7 @@ function PosProva() {
                         <Card.Title>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.max(...timeList).toString())
+                            timeList.indexOf(Math.max(...timeList).toFixed(2).toString())
                               ? question.title
                               : ""
                           )}
@@ -732,7 +862,7 @@ function PosProva() {
                         <Card.Text>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.max(...timeList).toString())
+                            timeList.indexOf(Math.max(...timeList).toFixed(2).toString())
                               ? question.description
                               : ""
                           )}
@@ -748,7 +878,7 @@ function PosProva() {
                         <Card.Title>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.min(...timeList).toString())
+                            timeList.indexOf(Math.min(...timeList).toFixed(2).toString())
                               ? question.title
                               : ""
                           )}
@@ -756,7 +886,7 @@ function PosProva() {
                         <Card.Text>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.min(...timeList).toString())
+                            timeList.indexOf(Math.min(...timeList).toFixed(2).toString())
                               ? question.description
                               : ""
                           )}
@@ -766,7 +896,6 @@ function PosProva() {
                     <br></br>
                     <Card>
                       <Card.Header>
-                        {console.log(compList)}
                         Questão com menos compilações -{" "}
                         {Math.min(
                           ...compList.filter((c) => typeof c === "number")
@@ -823,10 +952,83 @@ function PosProva() {
                         </Card.Text>
                       </Card.Body>
                     </Card>
+                    <br></br>
+                    <Card>
+                      <Card.Header>
+                        Questão com mais acertos - {Math.max(...rightList)}{" "}
+                        acerto(s)
+                      </Card.Header>
+                      <Card.Body>
+                        <Card.Title>
+                          {questionList.map((question, index) =>
+                            index === rightList.indexOf(Math.max(...rightList))
+                              ? question.title
+                              : ""
+                          )}
+                        </Card.Title>
+                        <Card.Text>
+                          {questionList.map((question, index) =>
+                            index === rightList.indexOf(Math.max(...rightList))
+                              ? question.description
+                              : ""
+                          )}
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                    <br></br>
+                    <Card>
+                      <Card.Header>
+                        Questão com mais erros - {Math.max(...wrongList)}{" "}
+                        erro(s)
+                      </Card.Header>
+                      <Card.Body>
+                        <Card.Title>
+                          {questionList.map((question, index) =>
+                            index === wrongList.indexOf(Math.max(...wrongList))
+                              ? question.title
+                              : ""
+                          )}
+                        </Card.Title>
+                        <Card.Text>
+                          {questionList.map((question, index) =>
+                            index === wrongList.indexOf(Math.max(...wrongList))
+                              ? question.description
+                              : ""
+                          )}
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                    <br></br>
                   </Col>
                 </Tab>
                 <Tab eventKey="diario" title="Diário de Classe">
                   <br></br>
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Nome do Aluno</th>
+                        <th>Nota</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentList.map((student, index) => {
+                        const newArr = answerList.filter(
+                          (element) => element.student_id === student.student_id
+                        );
+                        const nota = newArr.map((q) => q.value);
+                        const notaFinal =
+                          nota.length === 0
+                            ? 0
+                            : nota.reduce((total, num) => total + num);
+                        return (
+                          <tr>
+                            <td>{student.name}</td>
+                            <td>{notaFinal}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
                 </Tab>
               </Tabs>
             )}
@@ -844,6 +1046,35 @@ function PosProva() {
           <Modal.Title>Por favor, aguarde.</Modal.Title>
         </Modal.Header>
         <Modal.Body>Carregando Prova...</Modal.Body>
+      </Modal>
+      <Modal
+        show={showData}
+        onHide={handleCloseData}
+        backdrop="static"
+        keyboard={false}
+        centered
+      >
+        <Modal.Header>
+          <Modal.Title>Por favor, aguarde.</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Atualizando Dados...</Modal.Body>
+      </Modal>
+      <Modal
+        show={showError}
+        onHide={handleCloseError}
+        backdrop="static"
+        keyboard={false}
+        centered
+      >
+        <Modal.Header>
+          <Modal.Title>Nenhum aluno terminou essa prova</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Clique em voltar para ir ao início.</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={voltarInicio}>
+            Voltar
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   );

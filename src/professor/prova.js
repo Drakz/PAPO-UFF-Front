@@ -253,11 +253,11 @@ function ProvaProfessor() {
   const [testValue, setTestValue] = useState([]);
   //função para a criação de uma prova
   const newTest = useCallback(async () => {
-    console.log("como pode?");
     const res = await fetch(`https://2724b8b49587.ngrok.io/api/newTest`, {
       method: "POST",
       body: JSON.stringify({
         testName,
+        prof_id: history.location.state.prof_id,
       }),
       headers: { "Content-Type": "application/json" },
     });
@@ -295,7 +295,7 @@ function ProvaProfessor() {
     setQuestionList([]);
     setTestName("");
     console.log("prova criada com sucesso");
-  }, [questionList, testName]);
+  }, [questionList, testName, history.location.state.prof_id]);
 
   //função para popular a lista de questões
   const newQuestion = useCallback(() => {
@@ -451,7 +451,7 @@ function ProvaProfessor() {
         <Modal.Header closeButton>
           <Modal.Title>Prova Criada Com Sucesso!</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Cdigo da prova: {idTest}</Modal.Body>
+        <Modal.Body>Código da prova: {idTest}</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseSuccess}>
             Ok

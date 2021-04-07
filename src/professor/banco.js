@@ -99,6 +99,8 @@ function Banco({
       type: 1,
       difficulty: 1,
     });
+    setCurrentSubject(1);
+    setCurrentTopic(0);
     setInOutListModal([]);
     setMultipleChoiceAnswerModal([]);
     setAnswerModal("");
@@ -353,8 +355,6 @@ function Banco({
                 block
                 variant="success"
                 onClick={() => {
-                  console.log(currentQuestion);
-                  console.log(currentQuestion.type);
                   exportFunction(
                     currentQuestion.title,
                     currentQuestion.description,

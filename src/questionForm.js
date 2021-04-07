@@ -7,7 +7,6 @@ import {
   Button,
   InputGroup,
   FormControl,
-  Alert,
 } from "react-bootstrap";
 import QuestionContext from "./professor/QuestionContext";
 
@@ -47,7 +46,6 @@ function QuestionForm({
   const [subjectsList, setSubjectsList] = useState([]);
   const [topicsList, setTopicsList] = useState([]);
   const [answerAtiva, setAnswerAtiva] = useState(false);
-  const [alert, setAlert] = useState(false);
 
   const clearAnswers = useCallback(() => {
     setInOutList([]);
@@ -62,12 +60,7 @@ function QuestionForm({
       );
       const topics = await res.json();
       setTopicsList(topics);
-      console.log(topics);
-      if (topics[0]) {
-        setTopic(topics[0].topic_id);
-      } else {
-        setTopic(topics[0].topic_id);
-      }
+      setTopic(topics[0].topic_id);
       //setando o topico da questão atual pro primeiro tópico
     },
     [setTopicsList, setTopic]
@@ -93,17 +86,18 @@ function QuestionForm({
             <Col>
               <Form.Group>
                 <Form.Label>Matéria</Form.Label>
-                <Form.Control as="select" value={subject} disabled={readOnly}>
+                <Form.Control
+                  as="select"
+                  value={subject}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    setSubject(e.target.value);
+                    getTopics(e.target.value);
+                  }}
+                >
                   {subjectsList.length > 0 ? (
                     subjectsList.map((_subject, index) => (
-                      <option
-                        value={_subject.subject_id}
-                        key={index}
-                        onClick={() => {
-                          setSubject(_subject.subject_id);
-                          getTopics(_subject.subject_id);
-                        }}
-                      >
+                      <option value={_subject.subject_id} key={index}>
                         {_subject.subject}
                       </option>
                     ))
@@ -119,7 +113,9 @@ function QuestionForm({
                 <Form.Control
                   as="select"
                   value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
+                  onChange={(e) => {
+                    setTopic(e.target.value);
+                  }}
                   disabled={readOnly}
                 >
                   {topicsList.length > 0 ? (
@@ -575,7 +571,6 @@ function QuestionForm({
                         variant="success"
                         onClick={() => {
                           addFunction();
-                          setAlert(true);
                         }}
                       >
                         Adicionar no Banco
@@ -584,21 +579,6 @@ function QuestionForm({
                   </div>
                 )}
               </div>
-            </div>
-          )}
-          {alert && (
-            <div style={{ marginTop: 12 }}>
-              <Alert key="2" variant="danger">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  Já existe uma questão no banco com esse título ou esse
-                  enunciado.
-                  <Button variant="danger" onClick={() => setAlert(false)}>
-                    Fechar
-                  </Button>
-                </div>
-              </Alert>
             </div>
           )}
         </>
