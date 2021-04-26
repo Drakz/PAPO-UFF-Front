@@ -9,7 +9,7 @@ function ProfessorPerfil() {
   const history = useHistory();
   useEffect(() => {
     const myFunction = async () => {
-      const res = await fetch(`https://2724b8b49587.ngrok.io/api/tests`, {
+      const res = await fetch(`https://951bd88b0269.ngrok.io/api/tests`, {
         method: "POST",
         body: JSON.stringify({
           prof_id: history.location.state.prof_id,

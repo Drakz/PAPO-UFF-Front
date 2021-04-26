@@ -253,7 +253,7 @@ function ProvaProfessor() {
   const [testValue, setTestValue] = useState([]);
   //função para a criação de uma prova
   const newTest = useCallback(async () => {
-    const res = await fetch(`https://2724b8b49587.ngrok.io/api/newTest`, {
+    const res = await fetch(`https://951bd88b0269.ngrok.io/api/newTest`, {
       method: "POST",
       body: JSON.stringify({
         testName,
@@ -265,7 +265,7 @@ function ProvaProfessor() {
     setIdTest(exam[0].test_id);
     handleShowSuccess();
     questionList.map(async (question, index) => {
-      const res = await fetch(`https://2724b8b49587.ngrok.io/api/addQuestion`, {
+      const res = await fetch(`https://951bd88b0269.ngrok.io/api/addQuestion`, {
         method: "POST",
         body: JSON.stringify({
           description: question.description,
@@ -280,7 +280,7 @@ function ProvaProfessor() {
         headers: { "Content-Type": "application/json" },
       });
       const examQuestion = await res.json();
-      fetch(`https://2724b8b49587.ngrok.io/api/newTestRel`, {
+      fetch(`https://951bd88b0269.ngrok.io/api/newTestRel`, {
         method: "POST",
         body: JSON.stringify({
           testId: exam[0].test_id,

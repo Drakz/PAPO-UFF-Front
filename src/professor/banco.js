@@ -119,7 +119,7 @@ function Banco({
   //search question in database
   const getQuestion = useCallback(async (_id) => {
     const res = await fetch(
-      `https://2724b8b49587.ngrok.io/api/questions/${_id}`
+      `https://951bd88b0269.ngrok.io/api/questions/${_id}`
     );
     const question = await res.json();
     setCurrentQuestion(question[0]);
@@ -128,7 +128,7 @@ function Banco({
   const getAnswer = useCallback(
     async (_id, type) => {
       const res = await fetch(
-        `https://2724b8b49587.ngrok.io/api/questions/answer/${_id}/${type}`
+        `https://951bd88b0269.ngrok.io/api/questions/answer/${_id}/${type}`
       );
       const answer = await res.json();
       if (type === 1) {
@@ -171,7 +171,7 @@ function Banco({
   //search questions in database based on a topic id
   const getQuestions = useCallback(async (_id) => {
     const res = await fetch(
-      `https://2724b8b49587.ngrok.io/api/topic/${_id}/questions`
+      `https://951bd88b0269.ngrok.io/api/topic/${_id}/questions`
     );
     const questions = await res.json();
     setQuestionList(questions);
@@ -180,7 +180,7 @@ function Banco({
   const getTopics = useCallback(
     async (_id) => {
       const res = await fetch(
-        `https://2724b8b49587.ngrok.io/api/subject/${_id}/topics`
+        `https://951bd88b0269.ngrok.io/api/subject/${_id}/topics`
       );
       const topics = await res.json();
       setTopics(topics);
@@ -195,7 +195,7 @@ function Banco({
   );
   //insert a new topic in database
   const newTopic = useCallback(async (_id, _newTopic) => {
-    await fetch(`https://2724b8b49587.ngrok.io/api/subject/newTopic`, {
+    await fetch(`https://951bd88b0269.ngrok.io/api/subject/newTopic`, {
       method: "POST",
       body: JSON.stringify({
         id: _id,
@@ -206,7 +206,7 @@ function Banco({
   }, []);
   //insert a new question in database
   const newQuestion = useCallback(async () => {
-    const res = await fetch(`https://2724b8b49587.ngrok.io/api/addQuestion`, {
+    const res = await fetch(`https://951bd88b0269.ngrok.io/api/addQuestion`, {
       method: "POST",
       body: JSON.stringify({
         description: currentModalQuestion.description,
@@ -241,7 +241,7 @@ function Banco({
 
   useEffect(() => {
     const myFunction = async () => {
-      const res = await fetch(`https://2724b8b49587.ngrok.io/api/subjects`);
+      const res = await fetch(`https://951bd88b0269.ngrok.io/api/subjects`);
       const subjectsArray = await res.json();
       setSubjects(subjectsArray);
       if (subjectsArray[0]) {

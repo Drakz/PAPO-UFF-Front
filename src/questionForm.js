@@ -56,7 +56,7 @@ function QuestionForm({
   const getTopics = useCallback(
     async (_id) => {
       const res = await fetch(
-        `https://2724b8b49587.ngrok.io/api/subject/${_id}/topics`
+        `https://951bd88b0269.ngrok.io/api/subject/${_id}/topics`
       );
       const topics = await res.json();
       setTopicsList(topics);
@@ -68,7 +68,7 @@ function QuestionForm({
 
   useEffect(() => {
     const getSubjects = async () => {
-      const res = await fetch(`https://2724b8b49587.ngrok.io/api/subjects`);
+      const res = await fetch(`https://951bd88b0269.ngrok.io/api/subjects`);
       const subjectsArray = await res.json();
       setSubjectsList(subjectsArray);
       if (subjectsArray[0]) {

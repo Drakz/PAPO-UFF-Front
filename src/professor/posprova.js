@@ -19,6 +19,17 @@ import {
 import Chart from "react-apexcharts";
 import { useHistory } from "react-router-dom";
 
+function msToTime(s) {
+  var ms = s % 1000;
+  s = (s - ms) / 1000;
+  var secs = s % 60;
+  s = (s - secs) / 60;
+  var mins = s % 60;
+  var hrs = (s - mins) / 60;
+
+  return hrs + " hora(s) " + mins + " minuto(s) " + secs + " segundo(s)";
+}
+
 function PosProva() {
   const history = useHistory();
   const [testName, setTestName] = useState("");
@@ -104,7 +115,7 @@ function PosProva() {
 
   useEffect(() => {
     const myFunction = async () => {
-      const res = await fetch(`https://2724b8b49587.ngrok.io/api/test`, {
+      const res = await fetch(`https://951bd88b0269.ngrok.io/api/test`, {
         method: "POST",
         body: JSON.stringify({
           test_id: history.location.state.test_id,
@@ -114,7 +125,7 @@ function PosProva() {
       const test = await res.json();
       setTestName(test[0].name);
       const questionListQuery = await fetch(
-        `https://2724b8b49587.ngrok.io/api/professor_questions`,
+        `https://951bd88b0269.ngrok.io/api/professor_questions`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -126,7 +137,7 @@ function PosProva() {
       const questionListRes = await questionListQuery.json();
       setQuestionList(questionListRes);
       const query = await fetch(
-        `https://2724b8b49587.ngrok.io/api/test_students`,
+        `https://951bd88b0269.ngrok.io/api/test_students`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -141,7 +152,7 @@ function PosProva() {
           return student.student_id;
         });
         const queryStudent = await fetch(
-          `https://2724b8b49587.ngrok.io/api/students`,
+          `https://951bd88b0269.ngrok.io/api/students`,
           {
             method: "POST",
             body: JSON.stringify({
@@ -153,7 +164,7 @@ function PosProva() {
         const studentList = await queryStudent.json();
         setStudentList(studentList);
         const queryStudentAnswer = await fetch(
-          `https://2724b8b49587.ngrok.io/api/students_answer`,
+          `https://951bd88b0269.ngrok.io/api/students_answer`,
           {
             method: "POST",
             body: JSON.stringify({
@@ -175,7 +186,7 @@ function PosProva() {
               if (question.type === 1) {
                 if (gabaritoQuestion.answer[0].answer === question.answer) {
                   await fetch(
-                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                     {
                       method: "POST",
                       body: JSON.stringify({
@@ -188,7 +199,7 @@ function PosProva() {
                   );
                 } else {
                   await fetch(
-                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                     {
                       method: "POST",
                       body: JSON.stringify({
@@ -205,7 +216,7 @@ function PosProva() {
                   gabaritoQuestion.answer.map(
                     async (input_output, indexQuestion) => {
                       const res = await fetch(
-                        `https://2724b8b49587.ngrok.io/api/execute`,
+                        `https://951bd88b0269.ngrok.io/api/execute`,
                         {
                           method: "POST",
                           body: JSON.stringify({
@@ -239,7 +250,7 @@ function PosProva() {
                           question.inputs === gabaritoQuestion.answer.length
                         ) {
                           await fetch(
-                            `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                            `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                             {
                               method: "POST",
                               body: JSON.stringify({
@@ -252,7 +263,7 @@ function PosProva() {
                           );
                         } else if (question.inputs === 0) {
                           await fetch(
-                            `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                            `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                             {
                               method: "POST",
                               body: JSON.stringify({
@@ -266,7 +277,7 @@ function PosProva() {
                           );
                         } else {
                           await fetch(
-                            `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                            `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                             {
                               method: "POST",
                               body: JSON.stringify({
@@ -300,7 +311,7 @@ function PosProva() {
                   parseInt(question.answer)
                 ) {
                   await fetch(
-                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                     {
                       method: "POST",
                       body: JSON.stringify({
@@ -313,7 +324,7 @@ function PosProva() {
                   );
                 } else {
                   await fetch(
-                    `https://2724b8b49587.ngrok.io/api/updateQuestionScore`,
+                    `https://951bd88b0269.ngrok.io/api/updateQuestionScore`,
                     {
                       method: "POST",
                       body: JSON.stringify({
@@ -330,7 +341,7 @@ function PosProva() {
           })
         );
         const queryStudentAnswerFinal = await fetch(
-          `https://2724b8b49587.ngrok.io/api/students_answer`,
+          `https://951bd88b0269.ngrok.io/api/students_answer`,
           {
             method: "POST",
             body: JSON.stringify({
@@ -361,7 +372,9 @@ function PosProva() {
                 (element) => element.question_id === question.question_id
               );
               const times = aux.map((q) => question.compilations - q.comp);
-              return times.reduce((total, num) => total + num) / aux.length;
+              return (
+                times.reduce((total, num) => total + num) / aux.length
+              ).toFixed(2);
             } else {
               return null;
             }
@@ -409,7 +422,7 @@ function PosProva() {
   const setQuestionValue = useCallback(
     async (id, newValue) => {
       handleShowData();
-      await fetch(`https://2724b8b49587.ngrok.io/api/updateQuestionScore`, {
+      await fetch(`https://951bd88b0269.ngrok.io/api/updateQuestionScore`, {
         method: "POST",
         body: JSON.stringify({
           newValue: newValue,
@@ -419,7 +432,7 @@ function PosProva() {
         headers: { "Content-Type": "application/json" },
       });
       const query = await fetch(
-        `https://2724b8b49587.ngrok.io/api/test_students`,
+        `https://951bd88b0269.ngrok.io/api/test_students`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -433,7 +446,7 @@ function PosProva() {
         return student.student_id;
       });
       const queryStudentAnswerFinal = await fetch(
-        `https://2724b8b49587.ngrok.io/api/students_answer`,
+        `https://951bd88b0269.ngrok.io/api/students_answer`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -559,7 +572,13 @@ function PosProva() {
                           eventKey={index + 1}
                           style={{ cursor: "pointer" }}
                         >
-                          {question.title}
+                          {question.title} -{" "}
+                          {msToTime(
+                            currentStudent.filter(
+                              (element) =>
+                                element.question_id === question.question_id
+                            )[0].time
+                          )}
                         </Accordion.Toggle>
                         <Accordion.Collapse eventKey={index + 1}>
                           <Card.Body>
@@ -854,7 +873,11 @@ function PosProva() {
                         <Card.Title>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.max(...timeList).toFixed(2).toString())
+                            timeList.indexOf(
+                              Math.max(...timeList)
+                                .toFixed(2)
+                                .toString()
+                            )
                               ? question.title
                               : ""
                           )}
@@ -862,7 +885,11 @@ function PosProva() {
                         <Card.Text>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.max(...timeList).toFixed(2).toString())
+                            timeList.indexOf(
+                              Math.max(...timeList)
+                                .toFixed(2)
+                                .toString()
+                            )
                               ? question.description
                               : ""
                           )}
@@ -878,7 +905,11 @@ function PosProva() {
                         <Card.Title>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.min(...timeList).toFixed(2).toString())
+                            timeList.indexOf(
+                              Math.min(...timeList)
+                                .toFixed(2)
+                                .toString()
+                            )
                               ? question.title
                               : ""
                           )}
@@ -886,7 +917,11 @@ function PosProva() {
                         <Card.Text>
                           {questionList.map((question, index) =>
                             index ===
-                            timeList.indexOf(Math.min(...timeList).toFixed(2).toString())
+                            timeList.indexOf(
+                              Math.min(...timeList)
+                                .toFixed(2)
+                                .toString()
+                            )
                               ? question.description
                               : ""
                           )}
@@ -899,7 +934,7 @@ function PosProva() {
                         Questão com menos compilações -{" "}
                         {Math.min(
                           ...compList.filter((c) => typeof c === "number")
-                        )}{" "}
+                        )}
                         compilações
                       </Card.Header>
                       <Card.Body>
@@ -910,6 +945,8 @@ function PosProva() {
                               Math.min(
                                 ...compList.filter((c) => typeof c === "number")
                               )
+                                .toFixed(2)
+                                .toString()
                             )
                               ? question.title
                               : ""
@@ -922,6 +959,8 @@ function PosProva() {
                               Math.min(
                                 ...compList.filter((c) => typeof c === "number")
                               )
+                                .toFixed(2)
+                                .toString()
                             )
                               ? question.description
                               : ""

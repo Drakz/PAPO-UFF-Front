@@ -40,7 +40,7 @@ function ProvaAluno() {
     };
     const myFunction = async () => {
       const res = await fetch(
-        `https://2724b8b49587.ngrok.io/api/student_questions`,
+        `https://951bd88b0269.ngrok.io/api/student_questions`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -67,7 +67,7 @@ function ProvaAluno() {
   const compile = useCallback(async () => {
     if (questionList[currentIndex].compilations > 0) {
       setOutput("Compilando...");
-      const res = await fetch(`https://2724b8b49587.ngrok.io/api/compile`, {
+      const res = await fetch(`https://951bd88b0269.ngrok.io/api/compile`, {
         method: "POST",
         body: JSON.stringify({
           id: questionList[currentIndex].question_id,
@@ -88,7 +88,7 @@ function ProvaAluno() {
 
   const execute = useCallback(async () => {
     setOutput("Executando...");
-    const res = await fetch(`https://2724b8b49587.ngrok.io/api/execute`, {
+    const res = await fetch(`https://951bd88b0269.ngrok.io/api/execute`, {
       method: "POST",
       body: JSON.stringify({
         id: questionList[currentIndex].question_id,
@@ -120,7 +120,7 @@ function ProvaAluno() {
     await Promise.all(
       questionList.map(async (question, index) => {
         question.time = questionList[index].getTime();
-        await fetch(`https://2724b8b49587.ngrok.io/api/newStudentQuestion`, {
+        await fetch(`https://951bd88b0269.ngrok.io/api/newStudentQuestion`, {
           method: "POST",
           body: JSON.stringify({
             answer: question.answer,
@@ -135,7 +135,7 @@ function ProvaAluno() {
           headers: { "Content-Type": "application/json" },
         });
         if (question.type === 2) {
-          await fetch(`https://2724b8b49587.ngrok.io/api/compile`, {
+          await fetch(`https://951bd88b0269.ngrok.io/api/compile`, {
             method: "POST",
             body: JSON.stringify({
               id: question.question_id,
